@@ -59,6 +59,21 @@ class RecipeRepository extends ChangeNotifier {
           }
         }
 
+        // DB MIGRATION: Update built-in recipes to use translation keys instead of hardcoded English descriptions
+        final dbVersion = prefs.getInt('recipe_db_version') ?? 0;
+        if (dbVersion < 1) {
+          for (int i = 0; i < _recipes.length; i++) {
+            if (_recipes[i].isBuiltIn) {
+              final defaultMatch = recipeDatabase.where((d) => d.name == _recipes[i].name).firstOrNull;
+              if (defaultMatch != null) {
+                _recipes[i] = _recipes[i].copyWith(description: defaultMatch.description);
+                changed = true;
+              }
+            }
+          }
+          await prefs.setInt('recipe_db_version', 1);
+        }
+
         // Automatically merge missing default recipes (e.g. after an app update)
         for (var defaultRecipe in recipeDatabase) {
           if (!_recipes.any((r) => r.name == defaultRecipe.name) && !_deletedDefaultRecipes.contains(defaultRecipe.name)) {

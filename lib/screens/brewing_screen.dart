@@ -413,10 +413,10 @@ class _BrewingScreenState extends State<BrewingScreen> {
                 child: SingleChildScrollView(padding: const EdgeInsets.all(16.0), child: Column(children: [
                     Semantics(
                       header: true,
-                      label: AppStrings.str(lang, 'recipe_label', [AppStrings.str(lang, widget.recipe.name), widget.recipe.coffeeGrams.toString(), widget.recipe.totalWaterMl.toStringAsFixed(0)]),
+                      label: AppStrings.str(lang, 'recipe_label', [AppStrings.str(lang, widget.recipe.name), (widget.recipe.coffeeGrams == widget.recipe.coffeeGrams.toInt() ? widget.recipe.coffeeGrams.toInt() : widget.recipe.coffeeGrams).toString(), widget.recipe.totalWaterMl.toStringAsFixed(0)]),
                       excludeSemantics: true,
                       child: Text(
-                        '\${AppStrings.str(lang, widget.recipe.name)}\n${widget.recipe.coffeeGrams}g ☕ | ${widget.recipe.totalWaterMl.toStringAsFixed(0)}ml 💧',
+                        '${AppStrings.str(lang, widget.recipe.name)}\n${widget.recipe.coffeeGrams == widget.recipe.coffeeGrams.toInt() ? widget.recipe.coffeeGrams.toInt() : widget.recipe.coffeeGrams}g ☕ | ${widget.recipe.totalWaterMl.toStringAsFixed(0)}ml 💧',
                         style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),

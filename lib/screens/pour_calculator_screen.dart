@@ -6,6 +6,7 @@ import '../core/calibration_state.dart';
 import '../core/settings_state.dart';
 import '../core/timer_state.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:flutter/semantics.dart';
 
 class PourCalculatorScreen extends StatefulWidget {
   final String lang;
@@ -189,25 +190,31 @@ class _PourCalculatorScreenState extends State<PourCalculatorScreen> {
                       onPressed: _isPlaying ? null : () => _adjustVolume(-10),
                     ),
                     const SizedBox(width: 20),
-                    SizedBox(
-                      width: 140,
-                      child: TextField(
-                        controller: _mlController,
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        enabled: !_isPlaying,
-                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+                    Semantics(
+                      sortKey: const OrdinalSortKey(2.0),
+                      child: SizedBox(
+                        width: 140,
+                        child: TextField(
+                          controller: _mlController,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          enabled: !_isPlaying,
+                          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                            labelText: 'ml',
                           ),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                          suffixText: 'ml',
-                          suffixStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.normal),
+                          onChanged: _onMlChanged,
                         ),
-                        onChanged: _onMlChanged,
                       ),
+                    ),
+                    const SizedBox(width: 8),
+                    ExcludeSemantics(
+                      child: Text('ml', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(width: 20),
                     IconButton(

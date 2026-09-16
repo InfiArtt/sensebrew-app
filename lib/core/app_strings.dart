@@ -2,9 +2,9 @@ class AppStrings {
   static const Map<String, Map<String, String>> _strings = {
     'id': {
       'grinder_clicks': 'klik',
-      'header_favorites': '⭐ Favorites',
-      'header_custom': '✨ Your Recipes',
-      'header_builtin': '☕ Standard Recipes',
+      'header_favorites': '⭐ Favorit',
+      'header_custom': '✨ Resep Buatanmu',
+      'header_builtin': '☕ Resep Standar',
       'mark_favorite': 'Tandai sebagai favorit',
       'remove_favorite': 'Hapus dari favorit',
       // AUTO GENERATED ID RECIPES

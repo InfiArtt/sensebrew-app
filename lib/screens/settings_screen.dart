@@ -233,7 +233,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
           ),
-          const Divider(),
+
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(AppStrings.str(lang, 'tts_title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
