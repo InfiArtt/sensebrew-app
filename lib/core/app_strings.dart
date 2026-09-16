@@ -437,6 +437,7 @@ class AppStrings {
       'custom_recipe_label': 'Create a custom brew recipe.',
       'recipe_label': '{0} recipe. {1} grams of coffee. {2} milliliters of water.',
       'calib_title': 'Brewing Equipment & Flow Rate Calibration',
+      'stop_metronome': 'Stop Metronome',
       'start_metronome': 'Play Metronome',
       'save_calib': 'SAVE CALIBRATION',
       'save_calib_label': 'Save calibration results',
