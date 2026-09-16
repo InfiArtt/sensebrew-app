@@ -114,6 +114,18 @@ class MetronomeEngine(private val context: Context, private val tickEventChannel
             var tickCount = 0
             var totalFramesWritten = 0L
             
+            // Dart's Timer.periodic fires its first tick AFTER the interval has elapsed.
+            // To perfectly mimic this, we write one full period of silence before the main loop.
+            val initialPeriodSize = (SAMPLE_RATE * 60) / bpm
+            var initialSilenceWritten = 0
+            while (initialSilenceWritten < initialPeriodSize && isRunning) {
+                val remaining = initialPeriodSize - initialSilenceWritten
+                val silenceToWrite = minOf(silenceChunk.size, remaining)
+                val written = writeAudio(silenceChunk, silenceToWrite)
+                initialSilenceWritten += written
+            }
+            totalFramesWritten += initialSilenceWritten
+            
             while (isRunning) {
                 // Calculate current period size based on BPM
                 val currentBpm = bpm
