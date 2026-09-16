@@ -193,6 +193,12 @@ class MetronomeEngine(private val context: Context, private val tickEventChannel
             }
         }
         
+        if (delayMillis > 150L) {
+            delayMillis -= 150L // Offset by 150ms to compensate for TTS synthesis latency!
+        } else {
+            delayMillis = 0L
+        }
+        
         if (delayMillis <= 0) {
             mainHandler.post { eventSink?.success(tick) }
         } else {

@@ -267,9 +267,9 @@ class _BrewingScreenState extends State<BrewingScreen> {
             return;
           }
           
-          if (_currentSecond >= endPourSecond) {
-            if (_currentSecond == endPourSecond) {
-               timerAudio.stopMetronome(); // Kill the 8th tick immediately!
+          if (beat >= actionDuration) {
+            if (beat == actionDuration) {
+               timerAudio.stopMetronome(); // Kill the final tick immediately!
                timerAudio.speak(lang == 'en' ? 'Stop.' : 'Berhenti.');
                
                // Plan the Tunggu command quietly
@@ -280,7 +280,7 @@ class _BrewingScreenState extends State<BrewingScreen> {
                });
             }
           } else {
-             int elapsed = _currentSecond - _currentPhaseStartSecond;
+             int elapsed = beat;
              if (phase.action == PhaseAction.pourCircle) {
                  if (elapsed > 0 && elapsed % calibration.secondsPerRotation == 0) {
                      int rot = elapsed ~/ calibration.secondsPerRotation;
