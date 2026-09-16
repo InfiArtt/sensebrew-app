@@ -1,0 +1,120 @@
+﻿import json
+
+with open("full_id.json", "r", encoding="utf-8") as f:
+    id_data = json.load(f)
+
+with open("translated_new.json", "r", encoding="utf-8") as f:
+    trans_new = json.load(f)
+
+ui_translations = {
+    'header_favorites': '⭐ Favorites',
+    'header_custom': '✨ Your Recipes',
+    'header_builtin': '☕ Standard Recipes',
+    'mark_favorite': 'Mark as favorite',
+    'remove_favorite': 'Remove from favorites',
+    'Ca Phe Sua Da (Kopi Susu Es)': 'Ca Phe Sua Da (Iced Milk Coffee)',
+    'Ca Phe Den (Kopi Hitam)': 'Ca Phe Den (Black Coffee)',
+    'Vietnam Drip Gula Aren': 'Vietnam Drip Palm Sugar',
+    'Tradisional Vietnam Drip': 'Traditional Vietnam Drip',
+    'brew_dose': 'Coffee Dose: {0} scoops',
+    'brew_grind': 'Grind Size',
+    'brew_bean': 'Coffee Bean Type',
+    'brew_extra': 'Extra Ingredients',
+    'brew_desc_title': 'Recipe Description:',
+    'rotations_half': ' and a half',
+    'custom_grind_400': 'Very Fine (Espresso)',
+    'custom_grind_600': 'Fine (Aeropress)',
+    'custom_grind_800': 'Medium (V60 / Kalita)',
+    'custom_grind_1000': 'Medium Coarse (Chemex)',
+    'custom_grind_1200': 'Coarse (French Press / Switch)',
+    'custom_grind_1400': 'Very Coarse (Cold Brew)',
+    'custom_bean_blend': 'Blend',
+    'custom_bean_bebas': 'Any Bean',
+    'custom_recipe_desc': 'Recipe Description',
+    'custom_recipe_extra_hint': 'E.g: 15 ml condensed milk, 100 g ice cubes',
+    'home_select_method': 'Select Brew Method:',
+    'method_v60_desc': 'Pour-over brewing with spiral pours',
+    'method_fp_desc': 'Immersion brewing without grounds',
+    'method_ap_desc': 'Press brewing using air pressure',
+    'method_vd_desc': 'Slow drip brewing (Milk Coffee)',
+    'method_cup_desc': 'International coffee evaluation standard',
+    'calib_guide': 'Calibration Guide:\\n1. Prepare a kettle with water and a scale or measuring cup.\\n2. Activate the Metronome Simulation button below.\\n3. After the start cue, pour water as usual.\\n4. Count how many TICK sounds you hear until the water reaches your target volume.\\n5. Try pouring in a circle, and count how many TICK sounds it takes to complete one full rotation.\\n6. Enter those numbers into the fields below!',
+    'calib_header': 'Brewing Equipment & Flow Rate Calibration',
+    'calib_q1': 'What is the volume/weight of your measuring cup or target in ml/grams?',
+    'calib_q2': 'Turn on the metronome, then pour water. How many seconds (beats) does it take to reach the target?',
+    'calib_q3': 'Typically, how many seconds do you need to complete 1 full circle rotation (spiral) when pouring?',
+    'toggle_api_key': 'Show or hide API Key',
+    'restore_success': 'Default recipes restored successfully!',
+    'calib_grinder_select': 'Select Your Grinder:',
+    'calib_grinder_title': 'Select Grinder',
+    'calib_grinder_manual': 'Manual Grinder',
+    'calib_grinder_electric': 'Electric Grinder',
+    'calib_spoon_q': 'What is the capacity of your measuring scoop in grams?',
+    'calib_sim_btn': 'Metronome Simulation (Play Countdown)',
+    'action_swirl': 'Swirl gently',
+    'action_cap': 'Attach Cap',
+    'action_flip': 'Flip onto cup',
+    'ai_chat_title': 'Design with AI',
+    'app_title': 'SenseBrew',
+    'settings_menu': 'App Settings Menu',
+    'calibrate_flow_rate': 'Brewing Equipment & Flow Rate Calibration',
+    'calibrated_status': 'Device ready. Flow rate: {0} ml per second',
+    'uncalibrated_status': 'Flow rate not calibrated.',
+    'calibrated_btn': '{0} ml/second',
+    'uncalibrated_btn': '(Required)',
+    'custom_recipe_btn': 'Custom\\nRecipe',
+    'custom_recipe_label': 'Create a custom brew recipe.',
+    'language_selector': 'Change Language',
+    'theme_selector': 'Toggle Dark Mode',
+    'pour_calculator_title': 'Pour Calculator',
+    'calc_ratio_label': 'Water Ratio (1:X)',
+    'calc_coffee_label': 'Coffee Dose (grams)',
+    'calc_water_label': 'Total Water (ml)',
+    'calc_result': 'Result',
+    'calc_needs': 'You need {0} ml of water.',
+    'calc_yield': 'You will get around {0} ml of coffee.',
+    'ai_generate_btn': 'Generate Recipe with AI',
+    'ai_hint': 'E.g: I want a sweet V60 recipe for 15g coffee.',
+    'ai_loading': 'AI is thinking...',
+    'ai_success': 'Recipe generated successfully!',
+    'ai_error': 'Failed to connect to AI.',
+    'ai_model_selector': 'AI Model',
+    'ai_key_placeholder': 'Enter your Groq API Key',
+    'ai_save_key': 'Save Key',
+    'ai_key_saved': 'API Key saved!',
+    'ai_error_no_key': 'API Key is empty. Please fill it in Settings first.',
+    'ai_error_failed': 'Failed to create recipe: {0}',
+    'edit_btn': 'Edit',
+    'delete_btn': 'Delete',
+    'brew_btn': 'Brew',
+    'delete_confirm_title': 'Delete Recipe?',
+    'delete_confirm_desc': 'Are you sure you want to delete the recipe {0}?',
+    'tts_title': 'Voice & Language (TTS)',
+    'tts_enable': 'Voice Instructions',
+    'tts_enable_desc': 'Turn off if you only want to hear the metronome',
+    'tts_channel': 'Audio Channel',
+    'tts_channel_desc': "Select who will read the instructions",
+    'tts_channel_app': 'TTS',
+    'tts_channel_sr': 'Screen Reader',
+    'tts_lang': 'Voice Language',
+    'tts_speed': 'Voice Speed',
+    'tts_pitch': 'Voice Pitch',
+    'tts_voice': 'Voice Selection',
+    'tts_voice_desc': "Available voices depend on your phone's engine",
+    'tts_speed_changed': 'Speed changed to {0}',
+    'grinder_clicks': 'clicks',
+    'gemini_help_content': '1. Go to aistudio.google.com\\n2. Log in with your Google account.\\n3. Click "Get API key" > "Create API key".\\n4. Copy the code.\\n\\nNote: This service is free and does not require a credit card.',
+    'groq_help_content': '1. Go to console.groq.com/keys\\n2. Log in with your account.\\n3. Click "Create API Key".\\n4. Copy the code (usually starts with gsk_).\\n\\nNote: This service is free and does not require a credit card.'
+}
+
+all_trans = {**ui_translations, **trans_new}
+
+missing = {}
+for k, v in id_data.items():
+    if k not in all_trans:
+        missing[k] = v
+
+with open("missing_keys.json", "w", encoding="utf-8") as f:
+    json.dump(missing, f, indent=2, ensure_ascii=False)
+
+print(f"Missing {len(missing)} keys.")

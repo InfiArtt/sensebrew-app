@@ -1,0 +1,124 @@
+with open('lib/screens/settings_screen.dart', 'r', encoding='utf-8') as f:
+    lines = f.readlines()
+
+start_idx = -1
+end_idx = -1
+
+for i, line in enumerate(lines):
+    if "ListTile(" in line and "AppStrings.str(lang, 'tts_speed')" in lines[i+1]:
+        start_idx = i
+        break
+
+for i in range(start_idx, len(lines)):
+    if "child: ConstrainedBox(" in lines[i]:
+        # find the end of this ListTile which is 7 lines down
+        end_idx = i + 9
+        break
+
+if start_idx != -1 and end_idx != -1:
+    good_ui = """          if (settings.audioOutputMode == 'tts') ...[
+            ListTile(
+              title: Text(lang == 'en' ? 'Voice Volume' : 'Volume Suara (TTS)', style: const TextStyle(fontSize: 18)),
+              subtitle: Slider(
+                value: settings.ttsVolume,
+                min: 0.0,
+                max: 1.0,
+                divisions: 10,
+                label: "${(settings.ttsVolume * 100).toInt()}%",
+                onChanged: (val) {
+                  settings.setTtsVolume(val);
+                },
+                onChangeEnd: (val) {
+                  _syncAudioSettings();
+                  audio.speak(AppStrings.str(lang, 'tts_speed_changed', [(val * 100).toInt().toString()])); // Reusing speech confirmation
+                },
+              ),
+            ),
+            ListTile(
+              title: Text(AppStrings.str(lang, 'tts_speed'), style: const TextStyle(fontSize: 18)),
+              subtitle: Slider(
+                value: settings.ttsSpeed,
+                min: 0.5,
+                max: 2.0,
+                divisions: 6,
+                label: settings.ttsSpeed.toStringAsFixed(2),
+                onChanged: (val) {
+                  settings.setTtsSpeed(val);
+                },
+                onChangeEnd: (val) {
+                  _syncAudioSettings();
+                  audio.speak(AppStrings.str(lang, 'tts_speed_changed', [val.toStringAsFixed(2)]));
+                },
+              ),
+            ),
+            ListTile(
+              title: Text(AppStrings.str(lang, 'tts_pitch'), style: const TextStyle(fontSize: 18)),
+              subtitle: Slider(
+                value: settings.ttsPitch,
+                min: 0.5,
+                max: 2.0,
+                divisions: 15,
+                label: settings.ttsPitch.toStringAsFixed(1),
+                onChanged: (val) {
+                  settings.setTtsPitch(val);
+                },
+                onChangeEnd: (val) {
+                  _syncAudioSettings();
+                  audio.speak(AppStrings.str(lang, 'tts_pitch_changed'));
+                },
+              ),
+            ),
+            ListTile(
+              title: Text(AppStrings.str(lang, 'tts_voice'), style: const TextStyle(fontSize: 18)),
+              subtitle: Text(AppStrings.str(lang, 'tts_voice_desc')),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.play_circle_fill, color: Colors.blue, size: 36),
+                    tooltip: lang == 'en' ? 'Preview Voice' : 'Coba Dengarkan Suara',
+                    onPressed: () {
+                      audio.previewVoice(lang == 'en' ? 'This is a sample of the current voice settings.' : 'Ini adalah contoh suara dari pengaturan saat ini.');
+                    },
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      final options = audio.availableVoices
+                          .where((v) => v['locale']?.startsWith(settings.appLanguage) ?? false)
+                          .map((v) => {
+                                'value': v['name'] ?? '',
+                                'label': v['name'] ?? '',
+                              })
+                          .toList();
+                      
+                      _showSelectionBottomSheet(
+                        title: AppStrings.str(lang, 'tts_voice'),
+                        options: options,
+                        currentValue: settings.ttsVoiceName,
+                        onChanged: (val) {
+                          final selectedVoice = audio.availableVoices.firstWhere((v) => v['name'] == val);
+                          settings.setTtsVoice(selectedVoice['name']!, selectedVoice['locale']!);
+                          _syncAudioSettings();
+                          audio.speak(AppStrings.str(lang, 'tts_voice_changed'));
+                        },
+                      );
+                    },
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 100),
+                      child: Text(
+                        settings.ttsVoiceName.isEmpty ? AppStrings.str(lang, 'default') : settings.ttsVoiceName,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+"""
+    new_lines = lines[:start_idx] + [good_ui] + lines[end_idx:]
+    with open('lib/screens/settings_screen.dart', 'w', encoding='utf-8') as f:
+        f.writelines(new_lines)
+    print("Successfully replaced UI by line numbers.")
+else:
+    print("Failed to find start_idx or end_idx. start:", start_idx, "end:", end_idx)

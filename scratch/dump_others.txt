@@ -1,0 +1,262 @@
+
+============= FRENCHPRESS =============
+--- James Hoffmann Ultimate V60 ---
+Desc: Buat lubang kecil (divot) di tengah bubuk kopi sebelum mulai. Gunakan air sangat panas (99°C). Goyangkan dripper (swirl) di fase bloom dan di akhir agar ekstraksi merata rata.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 500, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 250, action: PhaseAction.wait),
+  RecipePhase(startTimeSeconds: 540, action: PhaseAction.press),
+--- Traditional French Press ---
+Desc: Gunakan gelas takar fisik untuk akurasi air. Resep klasik 4 menit. Gilingan murni kasar, langsung ditekan setelah selesai.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 500, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 60, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.press),
+--- Cafe au Lait (Strong French Press) ---
+Desc: Rasio sangat ketat (1 banding 10) untuk hasil pekat, didesain untuk dituang dengan susu panas.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 300, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 60, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.press),
+--- Lance Hedrick French Press ---
+Desc: Gilingan sedang halus. Diamkan 5 menit, dan tekan plunger HANYA menyentuh permukaan air agar ampas tertahan.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 500, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 300, action: PhaseAction.press),
+--- Slayer French Press (Skim Early) ---
+Desc: Aduk kuat di awal dan langsung buang busa di menit pertama agar ekstraksi merata sejak awal.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 500, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 60, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 70, action: PhaseAction.wait),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.press),
+--- French Press Cold Water Bloom ---
+Desc: Pra-seduh dengan air suhu ruang selama 1 menit, lalu tuang air panas. Menurunkan rasa pahit dan meningkatkan kemanis alami kopi.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 50, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 60, pourAmountMl: 450, action: PhaseAction.pourCircle),
+  RecipePhase(startTimeSeconds: 300, action: PhaseAction.wait),
+--- Tim Wendelboe French Press ---
+Desc: Mirip cupping. Seduh 4 menit, aduk perlahan, buang busa dan kerak, tunggu 5 menit lagi baru ditekan.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 500, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 540, action: PhaseAction.wait),
+--- Sprometheus French Press ---
+Desc: Waktu seduh singkat 3 menit dengan gilingan sedikit lebih halus dari standar. Menghasilkan kopi bersih dan terang.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 400, action: PhaseAction.pourCircle),
+  RecipePhase(startTimeSeconds: 180, action: PhaseAction.wait),
+--- Long Steep French Press (10 Menit) ---
+Desc: Ekstraksi lambat tanpa agitasi selama 10 menit penuh. Menghasilkan kopi manis dan super bersih tanpa rasa pahit.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 500, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 600, action: PhaseAction.wait),
+--- French Press Espresso Style ---
+Desc: Rasio sangat pekat (1 banding 5) untuk konsentrat kopi yang bisa dicampur susu panas, susu dingin, atau es batu.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.wait),
+
+============= AEROPRESS =============
+--- James Hoffmann Ultimate V60 ---
+Desc: Buat lubang kecil (divot) di tengah bubuk kopi sebelum mulai. Gunakan air sangat panas (99°C). Goyangkan dripper (swirl) di fase bloom dan di akhir agar ekstraksi merata rata.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 15, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 25, action: PhaseAction.press),
+--- Tim Wendelboe Aeropress ---
+Desc: Posisi standar. Tuang semua, aduk kuat 3 kali, diamkan, lalu tekan setelah 1 menit.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 15, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 20, action: PhaseAction.wait),
+  RecipePhase(startTimeSeconds: 60, action: PhaseAction.press),
+--- James Hoffmann Ultimate Aeropress ---
+Desc: Lebih hemat kopi. Posisi standar. Seduh 2 menit, putar sedikit, diamkan 30 detik, lalu tekan perlahan.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 120, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 125, action: PhaseAction.wait),
+  RecipePhase(startTimeSeconds: 150, action: PhaseAction.press),
+--- Inverted Classic ---
+Desc: Posisi terbalik. Aduk kuat, diamkan. Di menit 1 lewat 30 detik, balikkan alat perlahan dan tekan.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 90, action: PhaseAction.wait),
+  RecipePhase(startTimeSeconds: 120, action: PhaseAction.press),
+--- Aeropress Espresso Concentrate ---
+Desc: Ekstrak pekat untuk campuran susu. Posisi terbalik. Kopi digiling sangat halus, air sangat sedikit.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 90, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 70, action: PhaseAction.wait),
+  RecipePhase(startTimeSeconds: 90, action: PhaseAction.press),
+--- Aeropress Milk Punch ---
+Desc: Seduh gaya konsentrat langsung di atas gelas berisi susu dingin. Posisi standar, tekan perlahan.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 80, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 90, action: PhaseAction.press),
+--- WAC 2023 Champion Recipe ---
+Desc: Resep juara dunia Aeropress 2023. Ekstraksi suhu rendah dengan pengadukan intens, lalu dicampur air panas di akhir (bypass).
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 140, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 10, action: PhaseAction.swirl),
+  RecipePhase(startTimeSeconds: 90, action: PhaseAction.wait),
+  RecipePhase(startTimeSeconds: 120, pourAmountMl: 80, action: PhaseAction.pourCenter),
+--- Jonathan Gagne Long Steep ---
+Desc: Durasi panjang 9 menit dengan gilingan seukuran V60. Menghasilkan ekstraksi manis dan merata tanpa kepahitan.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 300, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 540, action: PhaseAction.wait),
+--- Aeropress Iced Coffee ---
+Desc: Air panas sedikit untuk konsentrat pekat, langsung ditekan kuat di atas es batu. Menghasilkan es kopi yang segar dan kuat.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 100, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 10, action: PhaseAction.swirl),
+  RecipePhase(startTimeSeconds: 60, pourAmountMl: 0, action: PhaseAction.pourCenter),
+--- Aeropress Espresso (Faux-Presso) ---
+Desc: Gilingan sangat halus dengan air sangat sedikit, ditekan sekuat tenaga. Menghasilkan konsentrat pekat mirip espresso.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 50, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 10, action: PhaseAction.swirl),
+  RecipePhase(startTimeSeconds: 60, pourAmountMl: 0, action: PhaseAction.pourCenter),
+--- Tradisional Vietnam Drip ---
+Desc: Susu kental manis di dasar gelas. Kopi diteteskan perlahan ke atas susu.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 100, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 60, action: PhaseAction.press),
+--- W.A.C Paulina Miczka (2017) ---
+Desc: Resep juara 2017. Rasio 1:5 pekat di awal, ditambah air bypass di akhir. Inverted.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 150, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 15, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 35, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 75, action: PhaseAction.press),
+--- Tuomas Merikanto W.A.C ---
+Desc: Aeropress standar (tidak inverted). Air 80C, biarkan menetes perlahan lalu press sangat lambat.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 50, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 10, action: PhaseAction.swirl),
+  RecipePhase(startTimeSeconds: 45, pourAmountMl: 150, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 90, action: PhaseAction.press),
+--- Aeropress Flow Control ---
+Desc: Menggunakan cap Prismo atau Flow Control. Imersi penuh tanpa inverted.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 250, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 120, action: PhaseAction.press),
+--- Aeropress Espresso Fake ---
+Desc: Ekstraksi konsentrat tinggi yang menyerupai espresso. Gunakan Prismo/Flow Control dan gilingan espresso.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 60, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 20, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 60, action: PhaseAction.press),
+--- Aeropress Tea-like Extract ---
+Desc: Rasio renggang dan gilingan kasar untuk rasa kopi yang mirip teh dan menyegarkan.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 250, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 150, action: PhaseAction.press),
+--- Aeropress Robusta Sweet ---
+Desc: Khusus untuk kopi Robusta. Ekstraksi singkat dengan suhu 85C agar tidak terlalu pahit.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 90, action: PhaseAction.press),
+
+============= VIETNAMDRIP =============
+--- James Hoffmann Ultimate V60 ---
+Desc: Buat lubang kecil (divot) di tengah bubuk kopi sebelum mulai. Gunakan air sangat panas (99°C). Goyangkan dripper (swirl) di fase bloom dan di akhir agar ekstraksi merata rata.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 20, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, pourAmountMl: 100, action: PhaseAction.pourCenter),
+--- Ca Phe Sua Da (Kopi Susu Es) ---
+Desc: Susu lebih banyak dan kopi dibuat lebih pekat karena akan dilelehkan dengan es batu.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 20, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 40, pourAmountMl: 80, action: PhaseAction.pourCenter),
+--- Ca Phe Den (Kopi Hitam) ---
+Desc: Vietnam Drip tanpa susu kental manis. Rasio air dibuat lebih panjang dan gilingan lebih kasar agar tidak pahit.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 25, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 40, pourAmountMl: 125, action: PhaseAction.pourCenter),
+--- Modern Specialty Drip ---
+Desc: Pendekatan modern untuk biji kopi sangrai terang. Mengekstrak rasa asam manis dengan bersih.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 40, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 45, pourAmountMl: 185, action: PhaseAction.pourCenter),
+--- Drip Ristretto Style ---
+Desc: Kopi ditekan sangat padat, air panas sedikit. Tetesan super intens bagai sirup kopi tebal.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 60, action: PhaseAction.pourCenter),
+--- Coconut Vietnam Drip ---
+Desc: Variasi gurih menggunakan campuran santan. Rasa tropis yang unik.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 20, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 40, pourAmountMl: 100, action: PhaseAction.pourCenter),
+--- Vietnam Drip Gula Aren ---
+Desc: Resep khas Nusantara. Campuran susu dan sirup aren memberikan rasa legit karamel.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 30, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 40, pourAmountMl: 100, action: PhaseAction.pourCenter),
+--- Vietnam Drip Paper Filter Method ---
+Desc: Menggunakan kertas saring (seukuran Aeropress) di dasar alat Phin sebelum kopi dimasukkan. Menghasilkan seduhan super bersih tanpa ampas halus. (Opsional: letakkan satu kertas lagi di atas kopi sebelum tamper untuk ekstraksi super merata).
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 20, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, pourAmountMl: 100, action: PhaseAction.pourCenter),
+--- Specialty High-Ratio Drip (1:12) ---
+Desc: Dikhususkan untuk biji kopi specialty (Light Roast), proses tamping tidak terlalu padat agar air mengalir optimal.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 30, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, pourAmountMl: 150, action: PhaseAction.pourCenter),
+--- Double Tamp Vietnam Drip ---
+Desc: Di-tamp sebelum bloom dan di-tamp lagi setelah bloom untuk menahan laju air lebih lama, ekstraksi lebih pekat.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 20, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 45, pourAmountMl: 80, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 360, action: PhaseAction.wait),
+--- SCA Cupping Protocol ---
+Desc: Standar cupping. Menit ke-4 hancurkan kerak permukaan kopi. Mulai menyeruput di menit 10.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 20, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, pourAmountMl: 80, action: PhaseAction.pourCenter),
+--- Ca Phe Trung (Egg Coffee) ---
+Desc: Kopi pekat yang dicampur dengan kuning telur yang dikocok bersama susu kental manis hingga mengembang.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 20, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 45, pourAmountMl: 60, action: PhaseAction.pourCenter),
+--- Ca Phe Sua Chua (Yogurt Coffee) ---
+Desc: Kombinasi asam segar dari Yogurt dan pahitnya Robusta. Kopi diteteskan ke atas es dan yogurt.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 20, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, pourAmountMl: 80, action: PhaseAction.pourCenter),
+--- Phin Arabica Light ---
+Desc: Vietnam Drip khusus untuk biji Arabica. Sedikit dipadatkan, suhu 92C untuk body tebal nan fruity.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 30, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 45, pourAmountMl: 90, action: PhaseAction.pourCenter),
+--- Vietnam Drip Mocha ---
+Desc: Tambahkan cokelat bubuk ke dalam susu kental manis sebelum ditetesi kopi.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 20, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 30, pourAmountMl: 80, action: PhaseAction.pourCenter),
+--- Phin Coconut (Bac Xiu) ---
+Desc: Varian kopi susu es Vietnam (Bạc Xỉu) dengan tambahan santan. Proporsi susu dan kelapa jauh lebih mendominasi dibandingkan kopinya untuk rasa manis, gurih, dan creamy.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 20, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 45, pourAmountMl: 40, action: PhaseAction.pourCenter),
+
+============= CUPPING =============
+--- James Hoffmann Ultimate V60 ---
+Desc: Buat lubang kecil (divot) di tengah bubuk kopi sebelum mulai. Gunakan air sangat panas (99°C). Goyangkan dripper (swirl) di fase bloom dan di akhir agar ekstraksi merata rata.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 245, action: PhaseAction.wait),
+  RecipePhase(startTimeSeconds: 600, action: PhaseAction.wait),
+--- James Hoffmann Home Cupping ---
+Desc: Cupping ala rumahan. Gunakan dua sendok untuk membuang busa di menit ke-4.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 245, action: PhaseAction.wait),
+  RecipePhase(startTimeSeconds: 720, action: PhaseAction.wait),
+--- Rapid QC Cupping ---
+Desc: Cupping cepat untuk Quality Control toko yang sibuk. Break di menit 3, evaluasi di menit 8.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 180, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 180, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 480, action: PhaseAction.wait),
+--- Roast Defect Cupping ---
+Desc: Mengekstrak paksa untuk mencari cacat sangrai. Gilingan lebih halus dan air mendidih.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 600, action: PhaseAction.wait),
+--- Cold Evaluation Cupping ---
+Desc: Evaluasi fokus di rasa kopi saat sangat dingin di menit ke-15. Fase awal sama, namun tunggu sangat lama.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 900, action: PhaseAction.wait),
+--- High Extraction Cupping ---
+Desc: Diaduk dua kali di menit ke-4 dan menit ke-8 untuk mendorong ekstraksi maksimal. Cocok untuk kopi light roast yang butuh dorongan ekstra.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 480, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 600, action: PhaseAction.wait),
+--- Espresso Roast Cupping ---
+Desc: Mengevaluasi biji sangrai gelap. Gilingan sedikit lebih kasar agar rasa pahit tidak berlebihan.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 600, action: PhaseAction.wait),
+--- Minimal Agitation Cupping ---
+Desc: Tanpa proses memecah kerak. Kopi dibiarkan turun sendiri perlahan ke dasar gelas. Menghasilkan evaluasi rasa yang sangat bersih.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 720, action: PhaseAction.wait),
+--- Travel Cupping (Thermos) ---
+Desc: Rasio cupping diaplikasikan untuk diseduh dan diminum langsung dari termos. Cocok untuk evaluasi kopi saat bepergian.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 250, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 300, action: PhaseAction.wait),
+--- Sifted Fines Cupping ---
+Desc: Resep eksperimental dengan menyaring ampas halus (fines) sebelum kopi diseduh air panas. Menghasilkan kejelasan rasa yang luar biasa.
+  RecipePhase(startTimeSeconds: 0, pourAmountMl: 200, action: PhaseAction.pourCenter),
+  RecipePhase(startTimeSeconds: 240, action: PhaseAction.stir),
+  RecipePhase(startTimeSeconds: 480, action: PhaseAction.wait),
