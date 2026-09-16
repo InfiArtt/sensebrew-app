@@ -540,7 +540,7 @@ class AppStrings {
       'tts_speed_changed': 'Speed changed to {0}',
       'tts_pitch_changed': 'Voice pitch changed to {0}',
       'tts_voice_changed': 'Voice changed to {0}',
-      'tts_channel_changed': 'Audio channel changed to {0}',
+      'tts_channel_changed': 'Audio channel changed',
       'default': 'Default',
       'desc_hoffmann': 'James Hoffmann\'s ultimate V60 recipe. Uses a swirl during bloom and at the end. Medium-fine grind. Focuses on even extraction and high yield.',
       'desc_kasuya': 'Tetsu Kasuya\'s 4:6 method. Coarse grind. Divides water into 40% (for sweetness/acidity balance) and 60% (for strength).',
