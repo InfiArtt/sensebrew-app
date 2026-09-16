@@ -1,24 +1,22 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:soundpool/soundpool.dart';
+import 'metronome_bridge.dart';
 
 class TimerAudioState extends ChangeNotifier {
   final FlutterTts _tts = FlutterTts();
   
   Soundpool? _soundpool;
-  int? _tickSoundId;
   int? _bellSoundId;
-
-  AudioPlayer? _keepAlivePlayer;
   
   bool _isRunning = false;
   int _beats = 0;
-  Timer? _timer;
+  
+  StreamSubscription<int>? _tickSubscription;
 
   bool get isRunning => _isRunning;
   int get beats => _beats;
@@ -34,16 +32,11 @@ class TimerAudioState extends ChangeNotifier {
   }
 
   Future<void> _initTts() async {
-    // 1. Initialize Soundpool for zero-latency tick and bell sounds
-    // Use StreamType.notification to attempt piercing the Bluetooth SCO call channel
+    // 1. Initialize Soundpool for zero-latency bell sound
     _soundpool = Soundpool.fromOptions(options: const SoundpoolOptions(
       streamType: StreamType.notification,
       maxStreams: 4,
     ));
-
-    // Load tick.wav into memory
-    final tickData = await rootBundle.load('assets/tick.wav');
-    _tickSoundId = await _soundpool!.load(tickData);
 
     // Load bell.wav into memory
     final bellData = await rootBundle.load('assets/bell.wav');
@@ -83,58 +76,6 @@ class TimerAudioState extends ChangeNotifier {
     }
   }
 
-  Uint8List _createSilenceWav(int seconds) {
-    int sampleRate = 44100;
-    int channels = 1;
-    int byteRate = sampleRate * channels * 2;
-    int dataSize = seconds * byteRate;
-    int fileSize = 36 + dataSize;
-
-    var header = ByteData(44);
-    header.setUint8(0, 0x52); header.setUint8(1, 0x49); header.setUint8(2, 0x46); header.setUint8(3, 0x46); // RIFF
-    header.setUint32(4, fileSize, Endian.little);
-    header.setUint8(8, 0x57); header.setUint8(9, 0x41); header.setUint8(10, 0x56); header.setUint8(11, 0x45); // WAVE
-    header.setUint8(12, 0x66); header.setUint8(13, 0x6D); header.setUint8(14, 0x74); header.setUint8(15, 0x20); // fmt 
-    header.setUint32(16, 16, Endian.little);
-    header.setUint16(20, 1, Endian.little);
-    header.setUint16(22, channels, Endian.little);
-    header.setUint32(24, sampleRate, Endian.little);
-    header.setUint32(28, byteRate, Endian.little);
-    header.setUint16(32, channels * 2, Endian.little);
-    header.setUint16(34, 16, Endian.little);
-    header.setUint8(36, 0x64); header.setUint8(37, 0x61); header.setUint8(38, 0x74); header.setUint8(39, 0x61); // data
-    header.setUint32(40, dataSize, Endian.little);
-
-    final wavBytes = Uint8List(44 + dataSize);
-    wavBytes.setRange(0, 44, header.buffer.asUint8List());
-    return wavBytes;
-  }
-
-  Future<void> _startKeepAlive() async {
-    _keepAlivePlayer?.dispose();
-    _keepAlivePlayer = AudioPlayer();
-    _keepAlivePlayer!.setReleaseMode(ReleaseMode.loop);
-    
-    // Create 10 seconds of silence to prevent platform channel event flooding
-    final wavBytes = _createSilenceWav(10);
-    
-    await _keepAlivePlayer!.setVolume(0.01);
-    await _keepAlivePlayer!.setSourceBytes(wavBytes);
-    await _keepAlivePlayer!.resume();
-  }
-
-  void _stopKeepAlive() {
-    _keepAlivePlayer?.stop();
-    _keepAlivePlayer?.dispose();
-    _keepAlivePlayer = null;
-  }
-
-  void _playTick() {
-    if (_tickSoundId != null && _soundpool != null) {
-      _soundpool!.play(_tickSoundId!);
-    }
-  }
-
   String _appliedLang = '';
   String? _appliedVoiceName;
 
@@ -170,7 +111,6 @@ class TimerAudioState extends ChangeNotifier {
     }
   }
 
-  
   Future<void> previewVoice(String text, {String? tempVoiceName, String? tempVoiceLocale}) async {
     if (_audioOutputMode == 'screen_reader') return;
     if (tempVoiceName != null && tempVoiceLocale != null) {
@@ -178,6 +118,7 @@ class TimerAudioState extends ChangeNotifier {
     }
     await _tts.speak(text);
   }
+
   Future<void> speak(String text) async {
     if (!_isTtsEnabled) return;
     
@@ -194,22 +135,11 @@ class TimerAudioState extends ChangeNotifier {
     _beats = 0;
     notifyListeners();
 
-    if (_audioMetronome) {
-      _startKeepAlive();
-    }
+    int bpm = (60 / tickIntervalSeconds).round();
 
-    int millis = (tickIntervalSeconds * 1000).round();
-
-    _timer = Timer.periodic(Duration(milliseconds: millis), (timer) {
-      if (!_isRunning) {
-        timer.cancel();
-        return;
-      }
-      _beats++;
-      
-      if (_audioMetronome) {
-        _playTick();
-      }
+    _tickSubscription = MetronomeBridge.tickStream.listen((beat) {
+      if (!_isRunning) return;
+      _beats = beat;
       
       if (_hapticEnabled) {
         HapticFeedback.heavyImpact();
@@ -220,12 +150,46 @@ class TimerAudioState extends ChangeNotifier {
       }
       notifyListeners();
     });
+
+    if (_audioMetronome) {
+      MetronomeBridge.start(bpm: bpm);
+    } else {
+      // If audio is disabled, use a silent native bridge anyway to keep accurate timing
+      // or just send bpm, but wait, if we want NO audio, our native engine currently
+      // has no concept of "mute". 
+      // For now, if audioMetronome is false, we can start the native engine and it will play ticks.
+      // Wait, we need to handle "mute". I should add mute support to the native engine or 
+      // just pass a volume parameter. Actually, visual metronome relies on the tick events!
+      // I will send a mute flag to the native engine or just use Dart timer if muted.
+      // Since it's easiest: if audioMetronome is false, we use a fallback Dart Timer 
+      // since exact audio sync isn't needed if there's no audio!
+      _startFallbackTimer(bpm, onTick);
+    }
+  }
+
+  Timer? _fallbackTimer;
+
+  void _startFallbackTimer(int bpm, Function(int)? onTick) {
+    int millis = (60000 / bpm).round();
+    _fallbackTimer = Timer.periodic(Duration(milliseconds: millis), (timer) {
+      if (!_isRunning) {
+        timer.cancel();
+        return;
+      }
+      _beats++;
+      if (_hapticEnabled) HapticFeedback.heavyImpact();
+      if (onTick != null) onTick(_beats);
+      notifyListeners();
+    });
   }
 
   void stopMetronome() {
-    _timer?.cancel();
     _isRunning = false;
-    _stopKeepAlive();
+    _tickSubscription?.cancel();
+    _tickSubscription = null;
+    _fallbackTimer?.cancel();
+    _fallbackTimer = null;
+    MetronomeBridge.stop();
     notifyListeners();
   }
 
@@ -237,8 +201,7 @@ class TimerAudioState extends ChangeNotifier {
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _stopKeepAlive();
+    stopMetronome();
     _soundpool?.release();
     _soundpool?.dispose();
     _tts.stop();
