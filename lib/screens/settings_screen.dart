@@ -134,7 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: AppStrings.str(lang, 'gemini_title'),
                   options: [
                     {'value': 'gemini', 'label': 'Google Gemini'},
-                    {'value': 'groq', 'label': 'Groq (Llama 3)'},
+                    {'value': 'groq', 'label': 'Groq (Ultra-Fast)'},
                   ],
                   currentValue: settings.aiProvider,
                   onSelected: (val) {
@@ -175,69 +175,75 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           if (settings.aiProvider == 'groq')
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: NativeTextField(
-                      key: const ValueKey('groq_api_key'),
-                      label: AppStrings.str(lang, 'groq_api_key_label') ?? 'Groq API Key',
-                      value: settings.groqApiKey,
-                      isPassword: _isGroqObscured,
-                      onChanged: (val) => settings.setGroqApiKey(val),
-                    ),
+                  Text(
+                    lang == 'en' ? 'Using built-in Groq AI server. Free, ultra-fast, and requires no API Key.' : 
+                    'Menggunakan server AI Groq bawaan aplikasi. Gratis, sangat cepat, dan tidak memerlukan konfigurasi API Key tambahan.',
+                    style: const TextStyle(color: Colors.green, fontWeight: FontWeight.w500),
                   ),
-                  IconButton(
-                    icon: Icon(_isGroqObscured ? Icons.visibility : Icons.visibility_off),
-                    tooltip: AppStrings.str(lang, _isGroqObscured ? 'show_api_key' : 'hide_api_key') ?? 'Toggle API Key',
-                    onPressed: () {
-                      setState(() {
-                        _isGroqObscured = !_isGroqObscured;
-                      });
-                    },
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            lang == 'en' 
+                              ? 'Note: Groq may block certain Wi-Fi or mobile networks (Error 403). If the AI fails to respond, please use a VPN or switch networks.' 
+                              : 'Catatan: Server Groq terkadang memblokir jaringan Wi-Fi/Seluler Indonesia (Error 403). Jika AI gagal membalas, silakan gunakan VPN atau ganti jaringan internet Anda.',
+                            style: const TextStyle(color: Colors.orange, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
 
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              icon: const Icon(Icons.help_outline),
-              label: Text(AppStrings.str(lang, settings.aiProvider == 'gemini' ? 'gemini_help_title' : 'groq_help_title')),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text(AppStrings.str(lang, settings.aiProvider == 'gemini' ? 'gemini_help_title' : 'groq_help_title')),
-                    content: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                            if (settings.aiProvider == 'gemini') ...[
+          if (settings.aiProvider == 'gemini')
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                icon: const Icon(Icons.help_outline),
+                label: Text(AppStrings.str(lang, 'gemini_help_title')),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(AppStrings.str(lang, 'gemini_help_title')),
+                      content: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                               const Text("Google Gemini (Gemini 2.5 Flash):", style: TextStyle(fontWeight: FontWeight.bold)),
                               ...AppStrings.str(lang, 'gemini_help_content').split('\n').where((s) => s.trim().isNotEmpty).map((line) => Padding(padding: const EdgeInsets.only(top: 8.0), child: Text(line))),
-                            ],
-                            if (settings.aiProvider == 'groq') ...[
-                              const Text("Groq (Llama 3):", style: TextStyle(fontWeight: FontWeight.bold)),
-                              ...AppStrings.str(lang, 'groq_help_content').split('\n').where((s) => s.trim().isNotEmpty).map((line) => Padding(padding: const EdgeInsets.only(top: 8.0), child: Text(line))),
-                            ],
-                        ],
+                          ],
+                        ),
                       ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(AppStrings.str(lang, 'close') ?? 'Tutup'),
+                        ),
+                      ],
                     ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(AppStrings.str(lang, 'close')),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
 
           Padding(
             padding: const EdgeInsets.all(16.0),

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/recipe.dart';
 import '../core/settings_state.dart';
@@ -22,6 +22,7 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
   final _waterController = TextEditingController();
   final _timeController = TextEditingController();
   final _extraIngredientsController = TextEditingController();
+  final _customBeanController = TextEditingController();
   int _targetGrindSizeMicrons = 800;
   String _beanType = 'Arabica';
 
@@ -67,8 +68,13 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
       final allowedGrindSizes = [400, 600, 800, 1000, 1200, 1400];
       _targetGrindSizeMicrons = allowedGrindSizes.reduce((a, b) => 
         (a - r.targetGrindSizeMicrons).abs() < (b - r.targetGrindSizeMicrons).abs() ? a : b);
-      
-      _beanType = r.beanType;
+      final allowedBeanTypes = ['Arabica', 'Robusta', 'Blend', 'Liberica', 'Excelsa', 'Bebas', 'Custom'];
+      if (allowedBeanTypes.contains(r.beanType)) {
+        _beanType = r.beanType;
+      } else {
+        _beanType = 'Custom';
+        _customBeanController.text = r.beanType;
+      }
 
       _coffeeController.text = r.coffeeGrams == r.coffeeGrams.toInt() ? r.coffeeGrams.toInt().toString() : r.coffeeGrams.toString();
       _waterController.text = r.totalWaterMl == r.totalWaterMl.toInt() ? r.totalWaterMl.toInt().toString() : r.totalWaterMl.toString();
@@ -85,6 +91,7 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
     _nameController.dispose();
     _noteController.dispose();
     _extraIngredientsController.dispose();
+    _customBeanController.dispose();
     _coffeeController.dispose();
     _waterController.dispose();
     _timeController.dispose();
@@ -151,8 +158,21 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
         for (var p in newRecipe.phases) {
           _mutablePhases.add({'start': p.startTimeSeconds, 'amount': p.pourAmountMl, 'action': p.action});
         }
-        _targetGrindSizeMicrons = newRecipe.targetGrindSizeMicrons;
-        _beanType = newRecipe.beanType;
+        int rawGrind = newRecipe.targetGrindSizeMicrons;
+        if (rawGrind <= 400) _targetGrindSizeMicrons = 400;
+        else if (rawGrind <= 600) _targetGrindSizeMicrons = 600;
+        else if (rawGrind <= 800) _targetGrindSizeMicrons = 800;
+        else if (rawGrind <= 1000) _targetGrindSizeMicrons = 1000;
+        else if (rawGrind <= 1200) _targetGrindSizeMicrons = 1200;
+        else _targetGrindSizeMicrons = 1400;
+
+        final allowedBeanTypes = ['Arabica', 'Robusta', 'Blend', 'Liberica', 'Excelsa', 'Bebas', 'Custom'];
+        if (allowedBeanTypes.contains(newRecipe.beanType)) {
+          _beanType = newRecipe.beanType;
+        } else {
+          _beanType = 'Custom'; 
+          _customBeanController.text = newRecipe.beanType;
+        }
       });
     }
   }
@@ -194,7 +214,7 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
       totalDurationSeconds: time,
       phases: phases,
       targetGrindSizeMicrons: _targetGrindSizeMicrons,
-      beanType: _beanType,
+      beanType: _beanType == 'Custom' ? (_customBeanController.text.isEmpty ? 'Custom' : _customBeanController.text) : _beanType,
       extraIngredients: extra,
       method: widget.initialRecipe?.method ?? BrewMethod.v60,
     );
@@ -280,20 +300,30 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
               child: DropdownButtonFormField<String>(
                 value: _beanType,
                 decoration: const InputDecoration(border: OutlineInputBorder()),
-                items: [
-                  const DropdownMenuItem(value: 'Arabica', child: Text('Arabica')),
-                  const DropdownMenuItem(value: 'Robusta', child: Text('Robusta')),
-                  DropdownMenuItem(value: 'Blend', child: Text(AppStrings.str(lang, 'custom_bean_blend'))),
-                  DropdownMenuItem(value: 'Liberica', child: Text('Liberica')),
-                  DropdownMenuItem(value: 'Excelsa', child: Text('Excelsa')),
-                  DropdownMenuItem(value: 'Bebas', child: Text(AppStrings.str(lang, 'custom_bean_bebas'))),
-                ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _beanType = val);
-                },
+                  items: [
+                    const DropdownMenuItem(value: 'Arabica', child: Text('Arabica')),
+                    const DropdownMenuItem(value: 'Robusta', child: Text('Robusta')),
+                    DropdownMenuItem(value: 'Blend', child: Text(AppStrings.str(lang, 'custom_bean_blend'))),
+                    DropdownMenuItem(value: 'Liberica', child: Text('Liberica')),
+                    DropdownMenuItem(value: 'Excelsa', child: Text('Excelsa')),
+                    DropdownMenuItem(value: 'Bebas', child: Text(AppStrings.str(lang, 'custom_bean_bebas'))),
+                    DropdownMenuItem(value: 'Custom', child: Text(AppStrings.str(lang, 'custom_bean_custom'))),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) setState(() => _beanType = val);
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
+              if (_beanType == 'Custom') ...[
+                const SizedBox(height: 8),
+                NativeTextField(
+                  label: AppStrings.str(lang, 'brew_bean'),
+                  value: _customBeanController.text,
+                  isNumber: false,
+                  onChanged: (val) { _customBeanController.text = val; setState(() {}); },
+                ),
+              ],
+              const SizedBox(height: 16),
             ExcludeSemantics(child: Text(AppStrings.str(lang, 'brew_grind'), style: const TextStyle(fontWeight: FontWeight.bold))),
             const SizedBox(height: 8),
             Semantics(

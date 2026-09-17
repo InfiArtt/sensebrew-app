@@ -98,6 +98,7 @@ class AppStrings {
       'custom_grind_1400': 'Sangat Kasar (Cold Brew)',
       'custom_bean_blend': 'Blend (Campuran)',
       'custom_bean_bebas': 'Bebas (Semua)',
+      'custom_bean_custom': 'Lainnya (Kustom)',
       'custom_recipe_desc': 'Deskripsi Resep',
       'custom_recipe_extra_hint': 'Misal: 15 ml susu kental manis, 100 gram es batu',
 
@@ -292,8 +293,12 @@ class AppStrings {
     },
     'en': {
       'grinder_clicks': 'clicks',
+      'Vietnam Drip Gula Aren': 'Palm Sugar Vietnam Drip',
+      'Tradisional Vietnam Drip': 'Traditional Vietnam Drip',
+      'Ca Phe Sua Da (Kopi Susu Es)': 'Ca Phe Sua Da (Iced Milk Coffee)',
+      'Ca Phe Den (Kopi Hitam)': 'Ca Phe Den (Black Coffee)',
       'header_favorites': '⭐ Favorites',
-      'header_custom': '✨ Your Recipes',
+      'header_custom': '✨ Custom Recipes',
       'header_builtin': '☕ Standard Recipes',
       'mark_favorite': 'Mark as favorite',
       'remove_favorite': 'Remove from favorites',
@@ -388,6 +393,7 @@ class AppStrings {
       'custom_grind_1400': 'Very Coarse (Cold Brew)',
       'custom_bean_blend': 'Blend',
       'custom_bean_bebas': 'Any Bean',
+      'custom_bean_custom': 'Other (Custom)',
       'custom_recipe_desc': 'Recipe Description',
       'custom_recipe_extra_hint': 'E.g: 15 ml condensed milk, 100 g ice cubes',
 

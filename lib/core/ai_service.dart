@@ -7,8 +7,9 @@ import '../main.dart'; // for navigatorKey context if needed
 class AiResponse {
   final Recipe recipe;
   final String chatMessage;
+  final String detectedLang;
 
-  AiResponse({required this.recipe, required this.chatMessage});
+  AiResponse({required this.recipe, required this.chatMessage, required this.detectedLang});
 }
 
 class AiService {
@@ -42,8 +43,8 @@ class AiService {
     String? audioBase64,
     Recipe? currentRecipe,
   }) async {
-    if (apiKey.isEmpty) {
-      throw Exception('API Key is empty. Please set it in Settings.');
+    if (apiKey.trim().isEmpty) {
+      throw Exception('API Key kosong. Silakan isi di Pengaturan (Settings).');
     }
 
     final cleanKey = apiKey.trim();
@@ -60,13 +61,13 @@ class AiService {
     final systemInstruction = '''
 You are a friendly, expert barista AI. $contextInfo
 The app is currently set to $appLangLabel.
-You must respond with a JSON object containing TWO things:
-  1. "chatMessage": A friendly, conversational response explaining what you just did. You MUST respond in the SAME LANGUAGE the user used in their message. If the user writes in Indonesian, reply in Indonesian. If the user writes in English, reply in English. If you cannot determine the user's language, default to $appLangLabel. Be casual, warm, and briefly summarize the recipe changes and flavor profile.
-  2. "recipe": The actual modified or new recipe data.
+  1. "chatMessage": A friendly, conversational response explaining what you just did. You MUST respond in the SAME LANGUAGE the user used in their message. If the user writes in Indonesian, reply in Indonesian. If the user writes in English, reply in English. IMPORTANT: Use a very casual, warm, and enthusiastic tone, like a friendly barista talking to a friend (e.g., use words like "Siap!", "Oke deh", "Wah boleh banget!"). Keep it brief.
+  2. "detectedLang": Either "id" or "en", representing the language you used in "chatMessage".
+  3. "recipe": The actual modified or new recipe data.
   
   RULES for the recipe data:
-  - ABSOLUTE RULE — NO EXCEPTIONS: For "name", "description", "extraIngredients", and ALL phase "instructionText", you MUST ALWAYS return a JSON OBJECT with BOTH "id" (Indonesian) and "en" (English) keys. NEVER return a plain string for these fields. Even if the user writes in Indonesian, you MUST translate to English for the "en" key, and vice versa. Example: {"id": "Tuang air perlahan", "en": "Pour water slowly"}. A plain string like "Tuang air perlahan" is WRONG and will break the app.
-  - The "chatMessage" field is the ONLY field where you respond in the user's language as a plain string.
+  - ABSOLUTE RULE — NO EXCEPTIONS: For "name", "description", "extraIngredients", and ALL phase "instructionText", you MUST ALWAYS return a JSON OBJECT with BOTH "id" (Indonesian) and "en" (English) keys. NEVER return a plain string for these fields. Example: {"id": "Tuang air perlahan", "en": "Pour water slowly"}.
+  - The "chatMessage" field is where you respond in the user's language as a plain string.
   - For "targetGrindSizeMicrons", output an integer. Use 400 (Sangat Halus/Espresso), 600 (Halus/Aeropress), 800 (Sedang/V60), 1000 (Agak Kasar/Chemex), 1200 (Kasar/French Press), or 1400 (Sangat Kasar/Cold Brew).
   - For "extraIngredients", write cleanly with metric units. DO NOT use acronyms like "sdm" or "SKM". If none, use {"id": "", "en": ""}.
   - At the very end of "description", ALWAYS add a new paragraph predicting the flavor profile in BOTH languages (inside the "id" and "en" keys respectively).
@@ -98,45 +99,55 @@ Valid actions: pourCircle, pourCenter, wait, stir, swirl, cap, flip, press, open
     String jsonStr = '';
 
     if (provider == 'groq') {
-      String finalPrompt = prompt ?? "";
-      
-      if (audioBase64 != null && audioBase64.isNotEmpty) {
-        final whisperUrl = Uri.parse('https://api.groq.com/openai/v1/audio/transcriptions');
-        var whisperReq = http.MultipartRequest('POST', whisperUrl);
-        whisperReq.headers['Authorization'] = 'Bearer $cleanKey';
-        whisperReq.fields['model'] = 'whisper-large-v3';
-        whisperReq.fields['response_format'] = 'json';
-        whisperReq.files.add(http.MultipartFile.fromBytes('file', base64Decode(audioBase64), filename: 'audio.m4a'));
+      try {
+        String finalPrompt = prompt ?? "";
         
-        final whisperRes = await whisperReq.send();
-        final whisperBody = await whisperRes.stream.bytesToString();
-        
-        if (whisperRes.statusCode != 200) {
-            throw Exception('Failed to transcribe audio with Groq Whisper: ${whisperRes.statusCode}\n$whisperBody');
-        }
-        
-        final whisperData = jsonDecode(whisperBody);
-        String transcribedText = whisperData['text'] ?? "";
-        finalPrompt += "\n[Voice Transcription]: $transcribedText";
-      }
-
-      final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
-      final body = jsonEncode({
-        "model": "llama-3.1-8b-instant",
-        "messages": [
-          {
-            "role": "user",
-            "content": systemInstruction + "\n\nUser request: $finalPrompt"
+        if (audioBase64 != null && audioBase64.isNotEmpty) {
+          final whisperUrl = Uri.parse('https://api.groq.com/openai/v1/audio/transcriptions');
+          var whisperReq = http.MultipartRequest('POST', whisperUrl);
+          whisperReq.headers['Authorization'] = 'Bearer $cleanKey';
+          whisperReq.headers['User-Agent'] = 'python-requests/2.31.0';
+          whisperReq.fields['model'] = 'whisper-large-v3';
+          whisperReq.fields['response_format'] = 'json';
+          whisperReq.files.add(http.MultipartFile.fromBytes('file', base64Decode(audioBase64), filename: 'audio.m4a'));
+          
+          final whisperRes = await whisperReq.send();
+          final whisperBody = await whisperRes.stream.bytesToString();
+          
+          if (whisperRes.statusCode != 200) {
+              throw Exception('WhisperError: ${whisperRes.statusCode} - $whisperBody');
           }
-        ],
-        "response_format": {"type": "json_object"}
-      });
+          
+          final whisperData = jsonDecode(whisperBody);
+          String transcribedText = whisperData['text'] ?? "";
+          finalPrompt += "\n[Voice Transcription]: $transcribedText";
+        }
 
-      final request = await http.post(url, body: body, headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $cleanKey'});
-      if (request.statusCode != 200) throw Exception('Failed to communicate with Groq: ${request.statusCode}\n${request.body}');
+        final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
+        final body = jsonEncode({
+          "model": "openai/gpt-oss-120b",
+          "messages": [
+            {
+              "role": "user",
+              "content": systemInstruction + "\n\nUser request: $finalPrompt"
+            }
+          ],
+          "response_format": {"type": "json_object"}
+        });
 
-      final responseData = jsonDecode(request.body);
-      jsonStr = responseData['choices'][0]['message']['content'] as String;
+        final request = await http.post(url, body: body, headers: {
+          'Content-Type': 'application/json', 
+          'Authorization': 'Bearer $cleanKey',
+          'User-Agent': 'python-requests/2.31.0'
+        });
+        if (request.statusCode != 200) throw Exception('ChatError: ${request.statusCode} - ${request.body}');
+
+        final responseData = jsonDecode(request.body);
+        jsonStr = responseData['choices'][0]['message']['content'] as String;
+
+      } catch (e) {
+        throw Exception('Koneksi Groq gagal. (${e.toString()})');
+      }
 
     } else {
       final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$cleanKey');
@@ -174,6 +185,7 @@ Valid actions: pourCircle, pourCenter, wait, stir, swirl, cap, flip, press, open
     final Map<String, dynamic> data = jsonDecode(jsonStr);
     
     final String chatMessage = data['chatMessage'] as String? ?? (lang == 'en' ? "Here is the draft!" : "Ini draf resepnya!");
+    final String detectedLang = data['detectedLang'] as String? ?? lang;
     final Map<String, dynamic> recipeData = data['recipe'] as Map<String, dynamic>? ?? data; // Fallback if AI didn't nest it
 
     final List<dynamic> phasesData = (recipeData['phases'] as List<dynamic>?) ?? [];
@@ -212,6 +224,6 @@ Valid actions: pourCircle, pourCenter, wait, stir, swirl, cap, flip, press, open
       
       
     
-    return AiResponse(recipe: generatedRecipe, chatMessage: chatMessage);
+    return AiResponse(recipe: generatedRecipe, chatMessage: chatMessage, detectedLang: detectedLang);
   }
 }

@@ -36,7 +36,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     _messages.add({
       'role': 'ai',
       'text': widget.initialRecipe != null 
-          ? AppStrings.str(lang, 'ai_greet_edit', [widget.initialRecipe!.name])
+          ? AppStrings.str(lang, 'ai_greet_edit', [AppStrings.str(lang, widget.initialRecipe!.name)])
           : AppStrings.str(lang, 'ai_greet_new'),
     });
     _currentDraft = widget.initialRecipe;
@@ -125,14 +125,20 @@ class _AiChatScreenState extends State<AiChatScreen> {
       if (aiResponse != null) {
         setState(() {
           _currentDraft = aiResponse.recipe;
-          String extra = _currentDraft!.extraIngredients.isEmpty ? "-" : AppStrings.str(lang, _currentDraft!.extraIngredients);
+          final previewLang = aiResponse.detectedLang;
+          String extra = _currentDraft!.extraIngredients.isEmpty ? "-" : AppStrings.str(previewLang, _currentDraft!.extraIngredients);
+          String phasesList = "";
+          for (var p in _currentDraft!.phases) {
+            phasesList += "\n   - ${p.startTimeSeconds}s: ${AppStrings.str(previewLang, p.instructionText)}";
+          }
+
           String previewText = "${aiResponse.chatMessage}\n\n📋 Preview:\n" +
-              "• ${AppStrings.str(lang, 'ai_coffee')}: ${_currentDraft!.coffeeGrams}g\n" +
-              "• ${AppStrings.str(lang, 'ai_water')}: ${_currentDraft!.totalWaterMl}ml\n" +
-              "• ${AppStrings.str(lang, 'ai_time')}: ${_currentDraft!.totalDurationSeconds}s\n" +
-              "• ${AppStrings.str(lang, 'brew_grind')}: ${_currentDraft!.targetGrindSizeMicrons} µm\n" +
-              "• ${AppStrings.str(lang, 'brew_extra')}: $extra\n" +
-              "• ${AppStrings.str(lang, 'phases_title')}: ${_currentDraft!.phases.length}";
+              "• ${AppStrings.str(previewLang, 'ai_coffee')}: ${_currentDraft!.coffeeGrams}g\n" +
+              "• ${AppStrings.str(previewLang, 'ai_water')}: ${_currentDraft!.totalWaterMl}ml\n" +
+              "• ${AppStrings.str(previewLang, 'ai_time')}: ${_currentDraft!.totalDurationSeconds}s\n" +
+              "• ${AppStrings.str(previewLang, 'brew_grind')}: ${_currentDraft!.targetGrindSizeMicrons} µm\n" +
+              "• ${AppStrings.str(previewLang, 'brew_extra')}: $extra\n" +
+              "• ${AppStrings.str(previewLang, 'phases_title')}:$phasesList";
 
           _messages.add({
             'role': 'ai',
