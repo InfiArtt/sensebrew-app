@@ -137,73 +137,121 @@ class _BrewingScreenState extends State<BrewingScreen> {
 
     if (!mounted || !_isBrewing) return; // In case user pressed stop while speaking
 
-    _brewTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    final stopwatch = Stopwatch()..start();
+    int lastProjectedSecond = -5;
+    int lastActualSecond = -5;
+    int ttsOffsetMs = 0;
+
+    _brewTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
       }
-      setState(() {
-        _currentSecond++;
-      });
       
-      if (_currentSecond > 0 && _currentSecond >= _activeRecipe.totalDurationSeconds) {
-        _stopBrewing(finished: true, lang: lang);
-        return;
-      }
+      int elapsedMs = stopwatch.elapsedMilliseconds;
+      int projectedSec = ((elapsedMs + ttsOffsetMs) / 1000).floor() - 4;
+      int actualSec = (elapsedMs / 1000).floor() - 4;
 
-      int activeIdx = -1;
-      for (int i = 0; i < _activeRecipe.phases.length; i++) {
-         if (_currentSecond >= _activeRecipe.phases[i].startTimeSeconds) {
-            activeIdx = i;
-         }
-      }
-      
-      if (activeIdx != -1 && activeIdx != _currentPhaseIndex) {
-         _currentPhaseIndex = activeIdx;
-         _currentPhaseStartSecond = _activeRecipe.phases[activeIdx].startTimeSeconds;
-         _processPhase(activeIdx, _timerAudio, calibration, stopPourStr, lang);
-      }
+      if (projectedSec > lastProjectedSecond) {
+        lastProjectedSecond = projectedSec;
+        int _simulatedSecond = projectedSec;
 
-      for (int i = activeIdx + 1; i < _activeRecipe.phases.length; i++) {
-        final p = _activeRecipe.phases[i];
-        int timeUntil = p.startTimeSeconds - _currentSecond;
-        if (timeUntil > 0 && timeUntil <= 5 && (p.action == PhaseAction.pourCircle || p.action == PhaseAction.pourCenter)) {
-           // Skip countdown if gap from current phase is too short (< 6s)
-           int currentPhaseEnd = _currentPhaseStartSecond;
-           if (activeIdx != -1) {
-             final currP = _activeRecipe.phases[activeIdx];
-             if (currP.action == PhaseAction.pourCircle || currP.action == PhaseAction.pourCenter) {
-                currentPhaseEnd += (currP.pourAmountMl / calibration.mlPerSecond).round();
-             }
-           }
-           bool skipCountdown = activeIdx != -1 && (p.startTimeSeconds - currentPhaseEnd) < 6;
+        if (_simulatedSecond > 0 && _simulatedSecond >= _activeRecipe.totalDurationSeconds) {
+           // Do nothing, handled by actualSec
+        } else {
+            int activeIdx = -1;
+            for (int i = 0; i < _activeRecipe.phases.length; i++) {
+               if (_simulatedSecond >= _activeRecipe.phases[i].startTimeSeconds) {
+                  activeIdx = i;
+               }
+            }
+            
+            if (activeIdx != -1 && activeIdx != _currentPhaseIndex) {
+               _currentPhaseIndex = activeIdx;
+               _currentPhaseStartSecond = _activeRecipe.phases[activeIdx].startTimeSeconds;
+               _processPhase(activeIdx, _timerAudio, calibration, stopPourStr, lang, ttsOffsetMs);
+            }
 
-           if (!skipCountdown) {
-             if (timeUntil == 5) {
-                 if (p.action == PhaseAction.pourCircle) {
-                    int actionDuration = (p.pourAmountMl / calibration.mlPerSecond).round();
-                    double rotations = actionDuration / calibration.secondsPerRotation;
-                    double roundedRotations = (rotations * 2).round() / 2;
-                    String unit = lang == "en" ? "rotations" : "putaran"; String half = AppStrings.str(lang, "rotations_half") ?? " setengah"; String rotStr = (roundedRotations % 1 == 0) ? "${roundedRotations.toInt()} $unit" : "${roundedRotations.toStringAsFixed(1).replaceAll('.5', half).replaceAll('.0', '')} $unit";
-                    _timerAudio.speak(lang == 'en' ? "Prepare to pour, $rotStr." : "Siap, tuang $rotStr.");
-                 } else if (p.action == PhaseAction.pourCenter) {
-                    int actionDuration = (p.pourAmountMl / calibration.mlPerSecond).round();
-                    _timerAudio.speak(lang == 'en' ? "Prepare for center pour, $actionDuration seconds." : "Siap, tuang tengah $actionDuration detik.");
+            for (int i = activeIdx + 1; i < _activeRecipe.phases.length; i++) {
+              final p = _activeRecipe.phases[i];
+              int timeUntil = p.startTimeSeconds - _simulatedSecond;
+              if (timeUntil > 0 && timeUntil <= 5 && (p.action == PhaseAction.pourCircle || p.action == PhaseAction.pourCenter)) {
+                 // Skip countdown if gap from current phase is too short (< 6s)
+                 int currentPhaseEnd = _currentPhaseStartSecond;
+                 if (activeIdx != -1) {
+                   final currP = _activeRecipe.phases[activeIdx];
+                   if (currP.action == PhaseAction.pourCircle || currP.action == PhaseAction.pourCenter) {
+                      currentPhaseEnd += (currP.pourAmountMl / calibration.mlPerSecond).round();
+                   }
                  }
-             } else if (timeUntil == 3) {
-                 _timerAudio.speak(lang == 'en' ? "Three." : "Tiga.");
-             } else if (timeUntil == 2) {
-                 _timerAudio.speak(lang == 'en' ? "Two." : "Dua.");
-             } else if (timeUntil == 1) {
-                 _timerAudio.speak(lang == 'en' ? "One." : "Satu.");
-             }
-           }
+                 bool skipCountdown = activeIdx != -1 && (p.startTimeSeconds - currentPhaseEnd) < 6;
+
+                 if (!skipCountdown) {
+                   if (timeUntil == 5) {
+                       if (p.action == PhaseAction.pourCircle) {
+                          int actionDuration = (p.pourAmountMl / calibration.mlPerSecond).round();
+                          double rotations = actionDuration / calibration.secondsPerRotation;
+                          double roundedRotations = (rotations * 2).round() / 2;
+                          String unit = lang == "en" ? "rotations" : "putaran"; String half = AppStrings.str(lang, "rotations_half") ?? " setengah"; String rotStr = (roundedRotations % 1 == 0) ? "${roundedRotations.toInt()} $unit" : "${roundedRotations.toStringAsFixed(1).replaceAll('.5', half).replaceAll('.0', '')} $unit";
+                          _timerAudio.speak(lang == 'en' ? "Prepare to pour, $rotStr." : "Siap, tuang $rotStr.");
+                       } else if (p.action == PhaseAction.pourCenter) {
+                          int actionDuration = (p.pourAmountMl / calibration.mlPerSecond).round();
+                          _timerAudio.speak(lang == 'en' ? "Prepare for center pour, $actionDuration seconds." : "Siap, tuang tengah $actionDuration detik.");
+                       }
+                   } else if (timeUntil == 3) {
+                       _timerAudio.speak(lang == 'en' ? "Three." : "Tiga.");
+                   } else if (timeUntil == 2) {
+                       _timerAudio.speak(lang == 'en' ? "Two." : "Dua.");
+                   } else if (timeUntil == 1) {
+                       _timerAudio.speak(lang == 'en' ? "One." : "Satu.");
+                   }
+                 }
+              }
+            }
+
+            // Speak during the pour (rotations, stop, wait)
+            if (activeIdx != -1) {
+              final currP = _activeRecipe.phases[activeIdx];
+              int elapsedSincePhaseStart = _simulatedSecond - currP.startTimeSeconds;
+              
+              if (currP.action == PhaseAction.pourCircle || currP.action == PhaseAction.pourCenter) {
+                 int actionDuration = (currP.pourAmountMl / calibration.mlPerSecond).round();
+                 
+                 if (elapsedSincePhaseStart > 0 && elapsedSincePhaseStart < actionDuration) {
+                    if (currP.action == PhaseAction.pourCircle) {
+                        if (elapsedSincePhaseStart % calibration.secondsPerRotation == 0) {
+                            int rot = elapsedSincePhaseStart ~/ calibration.secondsPerRotation;
+                            _timerAudio.speak(rot.toString());
+                        }
+                    } else if (currP.action == PhaseAction.pourCenter) {
+                        if (elapsedSincePhaseStart % 10 == 0) {
+                            _timerAudio.speak(elapsedSincePhaseStart.toString());
+                        }
+                    }
+                 } else if (elapsedSincePhaseStart == actionDuration) {
+                    _timerAudio.speak(lang == 'en' ? 'Stop.' : 'Berhenti.');
+                 } else if (elapsedSincePhaseStart == actionDuration + 1) {
+                    _timerAudio.speak(lang == 'en' ? 'Wait.' : 'Tunggu.');
+                 }
+              }
+            }
+        }
+      }
+
+      if (actualSec > lastActualSecond) {
+        lastActualSecond = actualSec;
+        setState(() {
+          _currentSecond = actualSec;
+        });
+        if (_currentSecond > 0 && _currentSecond >= _activeRecipe.totalDurationSeconds) {
+          _stopBrewing(finished: true, lang: lang);
+          return;
         }
       }
     });
   }
 
-  void _processPhase(int phaseIndex, TimerAudioState timerAudio, CalibrationState calibration, String stopStr, String lang) {
+  void _processPhase(int phaseIndex, TimerAudioState timerAudio, CalibrationState calibration, String stopStr, String lang, int ttsOffsetMs) {
     final phase = _activeRecipe.phases[phaseIndex];
     int actionDuration = 0;
 
@@ -259,41 +307,22 @@ class _BrewingScreenState extends State<BrewingScreen> {
     if (phase.action == PhaseAction.pourCircle || phase.action == PhaseAction.pourCenter) {
       int endPourSecond = _currentPhaseStartSecond + actionDuration;
       double interval = 1.0; // Flat 60 BPM clock for all methods
-      timerAudio.startMetronome(
-        tickIntervalSeconds: interval,
-        onTick: (beat) {
-          if (_currentPhaseIndex != phaseIndex) {
-            timerAudio.stopMetronome();
-            return;
-          }
-          
-          if (beat >= actionDuration) {
-            if (beat == actionDuration) {
-               timerAudio.stopMetronome(); // Kill the final tick immediately!
-               timerAudio.speak(lang == 'en' ? 'Stop.' : 'Berhenti.');
-               
-               // Plan the Tunggu command quietly
-               Future.delayed(const Duration(seconds: 1), () {
-                 if (mounted && _currentPhaseIndex == phaseIndex) {
-                   timerAudio.speak(lang == 'en' ? 'Wait.' : 'Tunggu.');
-                 }
-               });
+      Future.delayed(Duration(milliseconds: ttsOffsetMs), () {
+        if (!mounted) return;
+        timerAudio.startMetronome(
+          tickIntervalSeconds: interval,
+          onTick: (beat) {
+            if (_currentPhaseIndex != phaseIndex) {
+              timerAudio.stopMetronome();
+              return;
             }
-          } else {
-             int elapsed = beat;
-             if (phase.action == PhaseAction.pourCircle) {
-                 if (elapsed > 0 && elapsed % calibration.secondsPerRotation == 0) {
-                     int rot = elapsed ~/ calibration.secondsPerRotation;
-                     timerAudio.speak(rot.toString());
-                 }
-             } else if (phase.action == PhaseAction.pourCenter) {
-                 if (elapsed > 0 && elapsed % 10 == 0) {
-                     timerAudio.speak(elapsed.toString());
-                 }
-             }
+            
+            if (beat >= actionDuration) {
+              timerAudio.stopMetronome();
+            }
           }
-        }
-      );
+        );
+      });
     }
   }
 

@@ -312,6 +312,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text(settings.audioOutputMode == 'tts' ? AppStrings.str(lang, 'tts_channel_app') : AppStrings.str(lang, 'tts_channel_sr')),
             ),
           ),
+          const Divider(),
           if (settings.audioOutputMode == 'tts') ...[
             ListTile(
               title: Text(lang == 'en' ? 'Voice Volume' : 'Volume Suara (TTS)', style: const TextStyle(fontSize: 18)),

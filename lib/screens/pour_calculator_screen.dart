@@ -67,35 +67,69 @@ class _PourCalculatorScreenState extends State<PourCalculatorScreen> {
 
     await timerAudio.speak(AppStrings.str(widget.lang, 'pour_calc_ready') ?? 'Siap-siap');
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    final stopwatch = Stopwatch()..start();
+    int lastProjectedSecond = -1;
+    int lastActualSecond = -1;
+    final settings = Provider.of<SettingsState>(context, listen: false);
+    int ttsOffsetMs = 0;
+
+    _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
       if (!mounted) return;
-      
-      setState(() {
+
+      int elapsedMs = stopwatch.elapsedMilliseconds;
+      int projectedMs = elapsedMs + ttsOffsetMs;
+      int projectedSec = (projectedMs / 1000).floor();
+      int actualSec = (elapsedMs / 1000).floor();
+
+      // Handle TTS (Projected Time)
+      if (projectedSec > lastProjectedSecond) {
+        lastProjectedSecond = projectedSec;
+        
         if (_isCountdown) {
-          if (_counter > 0) {
-            timerAudio.speak(_counter.toString());
-            _counter--;
-          } else {
-            _isCountdown = false;
-            _counter = estTime;
+          int count = 3 - projectedSec;
+          if (count > 0 && count <= 3) {
+            timerAudio.speak(count.toString());
+          } else if (count == 0) {
             timerAudio.speak(widget.lang == 'en' ? 'Start!' : 'Mulai!');
-            
-            final settings = Provider.of<SettingsState>(context, listen: false);
-            if (settings.audioMetronome) {
-              timerAudio.startMetronome(
-                tickIntervalSeconds: 1.0,
-                onTick: (beat) {}
-              );
-            }
           }
         } else {
-          _counter--;
-          if (_counter <= 0) {
-            _stopPour();
+          int remaining = estTime - (projectedSec - 4); // 4 seconds of countdown (0,1,2,3)
+          if (remaining == 0) {
             timerAudio.speak(AppStrings.str(widget.lang, 'pour_calc_stop') ?? 'Berhenti');
           }
         }
-      });
+      }
+
+      // Handle UI & Metronome (Actual Time)
+      if (actualSec > lastActualSecond) {
+        lastActualSecond = actualSec;
+        
+        setState(() {
+          if (_isCountdown) {
+            int count = 3 - actualSec;
+            if (count > 0) {
+              _counter = count;
+            } else if (count == 0) {
+              _isCountdown = false;
+              _counter = estTime;
+              
+              if (settings.audioMetronome) {
+                timerAudio.startMetronome(
+                  tickIntervalSeconds: 1.0,
+                  onTick: (beat) {}
+                );
+              }
+            }
+          } else {
+            int remaining = estTime - (actualSec - 4);
+            if (remaining > 0) {
+              _counter = remaining;
+            } else {
+              _stopPour();
+            }
+          }
+        });
+      }
     });
   }
   
