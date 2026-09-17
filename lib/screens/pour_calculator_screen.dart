@@ -7,6 +7,8 @@ import '../core/settings_state.dart';
 import '../core/timer_state.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter/semantics.dart';
+import '../widgets/native_text_field.dart';
+
 
 class PourCalculatorScreen extends StatefulWidget {
   final String lang;
@@ -193,29 +195,16 @@ class _PourCalculatorScreenState extends State<PourCalculatorScreen> {
                     Semantics(
                       sortKey: const OrdinalSortKey(2.0),
                       child: SizedBox(
-                        width: 140,
-                        child: TextField(
-                          controller: _mlController,
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          enabled: !_isPlaying,
-                          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                            labelText: 'ml',
-                          ),
+                        width: 160,
+                        child: NativeTextField(
+                          label: 'ml',
+                          value: _targetMl.toString(),
+                          isNumber: true,
                           onChanged: _onMlChanged,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    ExcludeSemantics(
-                      child: Text('ml', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    ),
+
                     const SizedBox(width: 20),
                     IconButton(
                       icon: const Icon(Icons.add_circle_outline),

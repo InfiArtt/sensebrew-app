@@ -4,6 +4,7 @@ import '../core/settings_state.dart';
 import '../core/timer_state.dart';
 import '../core/recipe_repository.dart';
 import '../core/app_strings.dart';
+import '../widgets/native_text_field.dart';
 
 
 class SettingsScreen extends StatefulWidget {
@@ -16,24 +17,6 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _isGeminiObscured = true;
   bool _isGroqObscured = true;
-  final TextEditingController _geminiController = TextEditingController();
-  final TextEditingController _groqController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    final settings = Provider.of<SettingsState>(context, listen: false);
-    _geminiController.text = settings.geminiApiKey;
-    _groqController.text = settings.groqApiKey;
-  }
-
-  @override
-  void dispose() {
-    _geminiController.dispose();
-    _groqController.dispose();
-    super.dispose();
-  }
-
   void _syncAudioSettings() {
     final settings = Provider.of<SettingsState>(context, listen: false);
     final audio = Provider.of<TimerAudioState>(context, listen: false);
@@ -166,35 +149,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
           if (settings.aiProvider == 'gemini')
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: TextField(
-                controller: _geminiController,
-                decoration: InputDecoration(
-                    suffixIcon: IconButton(icon: Icon(_isGeminiObscured ? Icons.visibility : Icons.visibility_off), tooltip: AppStrings.str(lang, 'toggle_api_key') ?? 'Show/Hide API Key', onPressed: () { setState(() { _isGeminiObscured = !_isGeminiObscured; }); }),
-                  labelText: 'Google Gemini API Key',
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: _isGeminiObscured,
-                onChanged: (val) {
-                  settings.setGeminiApiKey(val);
-                },
+              child: Row(
+                children: [
+                  Expanded(
+                    child: NativeTextField(
+                      key: const ValueKey('gemini_api_key'),
+                      label: AppStrings.str(lang, 'gemini_api_key_label') ?? 'Google Gemini API Key',
+                      value: settings.geminiApiKey,
+                      isPassword: _isGeminiObscured,
+                      onChanged: (val) => settings.setGeminiApiKey(val),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(_isGeminiObscured ? Icons.visibility : Icons.visibility_off),
+                    tooltip: AppStrings.str(lang, _isGeminiObscured ? 'show_api_key' : 'hide_api_key') ?? 'Toggle API Key',
+                    onPressed: () {
+                      setState(() {
+                        _isGeminiObscured = !_isGeminiObscured;
+                      });
+                    },
+                  ),
+                ],
               ),
             ),
+
           if (settings.aiProvider == 'groq')
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: TextField(
-                controller: _groqController,
-                decoration: InputDecoration(
-                    suffixIcon: IconButton(icon: Icon(_isGroqObscured ? Icons.visibility : Icons.visibility_off), tooltip: AppStrings.str(lang, 'toggle_api_key') ?? 'Show/Hide API Key', onPressed: () { setState(() { _isGroqObscured = !_isGroqObscured; }); }),
-                  labelText: 'Groq API Key',
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: _isGroqObscured,
-                onChanged: (val) {
-                  settings.setGroqApiKey(val);
-                },
+              child: Row(
+                children: [
+                  Expanded(
+                    child: NativeTextField(
+                      key: const ValueKey('groq_api_key'),
+                      label: AppStrings.str(lang, 'groq_api_key_label') ?? 'Groq API Key',
+                      value: settings.groqApiKey,
+                      isPassword: _isGroqObscured,
+                      onChanged: (val) => settings.setGroqApiKey(val),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(_isGroqObscured ? Icons.visibility : Icons.visibility_off),
+                    tooltip: AppStrings.str(lang, _isGroqObscured ? 'show_api_key' : 'hide_api_key') ?? 'Toggle API Key',
+                    onPressed: () {
+                      setState(() {
+                        _isGroqObscured = !_isGroqObscured;
+                      });
+                    },
+                  ),
+                ],
               ),
             ),
+
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,

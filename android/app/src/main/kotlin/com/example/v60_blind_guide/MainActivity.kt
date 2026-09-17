@@ -13,7 +13,14 @@ class MainActivity: FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        
+
+        // Register native EditText PlatformView
+        flutterEngine.platformViewsController.registry
+            .registerViewFactory(
+                "sensebrew/native_textfield",
+                NativeTextFieldFactory(flutterEngine.dartExecutor.binaryMessenger)
+            )
+
         val eventChannel = EventChannel(flutterEngine.dartExecutor.binaryMessenger, EVENT_CHANNEL)
         metronomeEngine = MetronomeEngine(context, eventChannel)
         
@@ -43,3 +50,5 @@ class MainActivity: FlutterActivity() {
         super.onDestroy()
     }
 }
+
+

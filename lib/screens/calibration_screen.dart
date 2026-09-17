@@ -7,6 +7,7 @@ import '../core/timer_state.dart';
 import '../core/settings_state.dart';
 import '../core/app_strings.dart';
 import '../core/grinder_database.dart';
+import '../widgets/native_text_field.dart';
 
 class CalibrationScreen extends StatefulWidget {
   const CalibrationScreen({super.key});
@@ -22,14 +23,8 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
   double spoonCapacity = 10.0;
   String selectedGrinderId = grinderDatabase.first.id;
 
-  late TextEditingController _volController;
-  late TextEditingController _secController;
-  late TextEditingController _rotController;
-  late TextEditingController _spoonController;
-  late FocusNode _volFocus;
-  late FocusNode _secFocus;
-  late FocusNode _rotFocus;
-  late FocusNode _spoonFocus;
+
+
 
   @override
   void initState() {
@@ -40,61 +35,16 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
     secondsPerRotation = calibration.secondsPerRotation.toInt();
     spoonCapacity = calibration.spoonCapacityGrams;
     selectedGrinderId = calibration.grinderId;
-    
-    // Ensure selectedGrinderId exists in database
+
     if (!grinderDatabase.any((g) => g.id == selectedGrinderId)) {
       selectedGrinderId = grinderDatabase.first.id;
     }
-    
-    _volController = TextEditingController(text: targetVolume.toString());
-    _secController = TextEditingController(text: totalSeconds.toString());
-    _rotController = TextEditingController(text: secondsPerRotation.toString());
-    _spoonController = TextEditingController(text: (spoonCapacity % 1 == 0) ? spoonCapacity.toInt().toString() : spoonCapacity.toString());
-
-    _volFocus = FocusNode()..addListener(() => _selectAllOnFocus(_volFocus, _volController));
-    _secFocus = FocusNode()..addListener(() => _selectAllOnFocus(_secFocus, _secController));
-    _rotFocus = FocusNode()..addListener(() => _selectAllOnFocus(_rotFocus, _rotController));
-    _spoonFocus = FocusNode()..addListener(() => _selectAllOnFocus(_spoonFocus, _spoonController));
   }
 
-  void _selectAllOnFocus(FocusNode node, TextEditingController controller) {
-    if (node.hasFocus) {
-      controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
-    }
-  }
-
-  @override
-  void dispose() {
-    _volController.dispose();
-    _secController.dispose();
-    _rotController.dispose();
-    _spoonController.dispose();
-    _volFocus.dispose();
-    _secFocus.dispose();
-    _rotFocus.dispose();
-    _spoonFocus.dispose();
-    super.dispose();
-  }
-
-  void _updateVol(int val) {
-    setState(() => targetVolume = val);
-    _volController.text = val.toString();
-  }
-
-  void _updateSec(int val) {
-    setState(() => totalSeconds = val);
-    _secController.text = val.toString();
-  }
-
-  void _updateRot(int val) {
-    setState(() => secondsPerRotation = val);
-    _rotController.text = val.toString();
-  }
-  
-  void _updateSpoon(int val) {
-    setState(() => spoonCapacity = val.toDouble());
-    _spoonController.text = val.toString();
-  }
+  void _updateVol(int val) => setState(() => targetVolume = val);
+  void _updateSec(int val) => setState(() => totalSeconds = val);
+  void _updateRot(int val) => setState(() => secondsPerRotation = val);
+  void _updateSpoon(int val) => setState(() => spoonCapacity = val.toDouble());
 
   @override
   Widget build(BuildContext context) {
@@ -206,22 +156,23 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
           const SizedBox(height: 24),
           Text(AppStrings.str(lang, 'calib_spoon_q'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          _buildAdjuster(lang, _spoonController, _spoonFocus, (val) => _updateSpoon(val), unit: "gram", minVal: 1, step: 1, semanticLabel: "gram"),
+          _buildAdjuster(lang, spoonCapacity.toInt(), (val) => _updateSpoon(val), unit: "gram", minVal: 1, step: 1, semanticLabel: "gram"),
 
           const SizedBox(height: 24),
           Text(AppStrings.str(lang, 'calib_q1') ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          _buildAdjuster(lang, _volController, _volFocus, (val) => _updateVol(val), unit: "ml", minVal: 10, step: 10, semanticLabel: "ml"),
+          _buildAdjuster(lang, targetVolume, (val) => _updateVol(val), unit: "ml", minVal: 10, step: 10, semanticLabel: "ml"),
           
           const SizedBox(height: 24),
           Text(AppStrings.str(lang, 'calib_q2') ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          _buildAdjuster(lang, _secController, _secFocus, (val) => _updateSec(val), unit: "TIK", minVal: 1, semanticLabel: "TIK"),
+          _buildAdjuster(lang, totalSeconds, (val) => _updateSec(val), unit: "TIK", minVal: 1, semanticLabel: "TIK"),
 
           const SizedBox(height: 24),
           Text(AppStrings.str(lang, 'calib_q3') ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          _buildAdjuster(lang, _rotController, _rotFocus, (val) => _updateRot(val), unit: "TIK", minVal: 1, semanticLabel: "TIK"),
+          _buildAdjuster(lang, secondsPerRotation, (val) => _updateRot(val), unit: "TIK", minVal: 1, semanticLabel: "TIK"),
+
 
           const SizedBox(height: 32),
           ElevatedButton(
@@ -231,12 +182,6 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
             ),
             onPressed: () {
               timerAudio.stopMetronome();
-              
-              // Ensure latest parsed value is saved
-              targetVolume = int.tryParse(_volController.text) ?? targetVolume;
-              totalSeconds = int.tryParse(_secController.text) ?? totalSeconds;
-              secondsPerRotation = int.tryParse(_rotController.text) ?? secondsPerRotation;
-              spoonCapacity = double.tryParse(_spoonController.text) ?? spoonCapacity;
 
               final calibration = Provider.of<CalibrationState>(context, listen: false);
               calibration.saveCalibration(targetVolume.toDouble(), totalSeconds, secondsPerRotation, spoonCapacity, selectedGrinderId);
@@ -246,6 +191,7 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
               );
               Navigator.pop(context);
             },
+
             child: Text(AppStrings.str(lang, 'save_calib_label') ?? '', style: const TextStyle(fontSize: 24, color: Colors.white)),
           ),
         ],
@@ -253,43 +199,36 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
     );
   }
 
-  Widget _buildAdjuster(String lang, TextEditingController controller, FocusNode focusNode, Function(int) onButtonChange, {int minVal = 10, int step = 1, required String unit, required String semanticLabel}) {
+  Widget _buildAdjuster(String lang, int currentValue, Function(int) onButtonChange, {int minVal = 10, int step = 1, required String unit, required String semanticLabel}) {
     return Semantics(
       explicitChildNodes: true,
       child: Row(
         children: [
           Semantics(
             sortKey: const OrdinalSortKey(1.0),
-            child: ValueListenableBuilder<TextEditingValue>(
-              valueListenable: controller,
-              builder: (context, val, child) {
-                int currentValue = int.tryParse(val.text) ?? 0;
-                return IconButton(
-                  icon: const Icon(Icons.remove_circle, size: 48, color: Colors.red),
-                  tooltip: AppStrings.str(lang, 'reduce', [(currentValue - step).toString(), unit]),
-                  onPressed: () {
-                    if (currentValue - step >= minVal) {
-                      onButtonChange(currentValue - step);
-                    }
-                  },
-                );
+            child: IconButton(
+              icon: const Icon(Icons.remove_circle, size: 48, color: Colors.red),
+              tooltip: AppStrings.str(lang, 'reduce', [(currentValue - step).toString(), unit]),
+              onPressed: () {
+                if (currentValue - step >= minVal) {
+                  onButtonChange(currentValue - step);
+                }
               },
             ),
           ),
           Expanded(
             child: Semantics(
               sortKey: const OrdinalSortKey(2.0),
-              child: TextField(
-                controller: controller,
-                focusNode: focusNode,
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: semanticLabel,
-                ),
-                textInputAction: TextInputAction.done,
+              child: NativeTextField(
+                label: semanticLabel,
+                value: currentValue.toString(),
+                isNumber: true,
+                onChanged: (val) {
+                  final parsed = int.tryParse(val);
+                  if (parsed != null && parsed >= minVal) {
+                    onButtonChange(parsed);
+                  }
+                },
               ),
             ),
           ),
@@ -300,18 +239,10 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
           const SizedBox(width: 8),
           Semantics(
             sortKey: const OrdinalSortKey(3.0),
-            child: ValueListenableBuilder<TextEditingValue>(
-              valueListenable: controller,
-              builder: (context, val, child) {
-                int currentValue = int.tryParse(val.text) ?? 0;
-                return IconButton(
-                  icon: const Icon(Icons.add_circle, size: 48, color: Colors.green),
-                  tooltip: AppStrings.str(lang, 'add', [(currentValue + step).toString(), unit]),
-                  onPressed: () {
-                    onButtonChange(currentValue + step);
-                  },
-                );
-              },
+            child: IconButton(
+              icon: const Icon(Icons.add_circle, size: 48, color: Colors.green),
+              tooltip: AppStrings.str(lang, 'add', [(currentValue + step).toString(), unit]),
+              onPressed: () => onButtonChange(currentValue + step),
             ),
           ),
         ],

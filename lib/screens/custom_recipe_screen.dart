@@ -1,9 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/recipe.dart';
 import '../core/settings_state.dart';
 import '../core/app_strings.dart';
 import 'ai_chat_screen.dart';
+import '../widgets/native_text_field.dart';
+
 
 class CustomRecipeScreen extends StatefulWidget {
   final Recipe? initialRecipe;
@@ -253,26 +255,23 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
           // --- MANUAL FORM SECTION ---
           ExcludeSemantics(child: Text(AppStrings.str(lang, 'recipe_name'), style: const TextStyle(fontWeight: FontWeight.bold))),
           const SizedBox(height: 8),
-          Semantics(
+          NativeTextField(
             label: AppStrings.str(lang, 'recipe_name'),
-            child: TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-              onChanged: (val) => setState(() {}),
-            ),
+            value: _nameController.text,
+            isNumber: false,
+            onChanged: (val) { _nameController.text = val; setState(() {}); },
           ),
           const SizedBox(height: 16),
           
           ExcludeSemantics(child: Text(AppStrings.str(lang, 'custom_recipe_desc'), style: const TextStyle(fontWeight: FontWeight.bold))),
           const SizedBox(height: 8),
-          Semantics(
+          NativeTextField(
             label: AppStrings.str(lang, 'custom_recipe_desc'),
-            child: TextField(
-              controller: _noteController,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-              onChanged: (val) => setState(() {}),
-            ),
+            value: _noteController.text,
+            isNumber: false,
+            onChanged: (val) { _noteController.text = val; setState(() {}); },
           ),
+
           const SizedBox(height: 16),
             ExcludeSemantics(child: Text(AppStrings.str(lang, 'brew_bean'), style: const TextStyle(fontWeight: FontWeight.bold))),
             const SizedBox(height: 8),
@@ -316,51 +315,44 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _extraIngredientsController,
-              decoration: InputDecoration(border: const OutlineInputBorder(), labelText: AppStrings.str(lang, 'brew_extra'), hintText: AppStrings.str(lang, 'custom_recipe_extra_hint')),
-              onChanged: (val) => setState(() {}),
+            NativeTextField(
+              label: AppStrings.str(lang, 'brew_extra'),
+              value: _extraIngredientsController.text,
+              isNumber: false,
+              onChanged: (val) { _extraIngredientsController.text = val; setState(() {}); },
             ),
             const SizedBox(height: 16),
 
           
           ExcludeSemantics(child: Text(AppStrings.str(lang, 'coffee_grams'), style: const TextStyle(fontWeight: FontWeight.bold))),
           const SizedBox(height: 8),
-          Semantics(
+          NativeTextField(
             label: AppStrings.str(lang, 'coffee_grams'),
-            child: TextField(
-              controller: _coffeeController,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-              keyboardType: TextInputType.number,
-              onChanged: (val) => setState(() {}),
-            ),
+            value: _coffeeController.text,
+            isNumber: true,
+            onChanged: (val) { _coffeeController.text = val; setState(() {}); },
           ),
           const SizedBox(height: 16),
 
           ExcludeSemantics(child: Text(AppStrings.str(lang, 'total_water'), style: const TextStyle(fontWeight: FontWeight.bold))),
           const SizedBox(height: 8),
-          Semantics(
+          NativeTextField(
             label: AppStrings.str(lang, 'total_water'),
-            child: TextField(
-              controller: _waterController,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-              keyboardType: TextInputType.number,
-              onChanged: (val) => setState(() {}),
-            ),
+            value: _waterController.text,
+            isNumber: true,
+            onChanged: (val) { _waterController.text = val; setState(() {}); },
           ),
           const SizedBox(height: 16),
           
           ExcludeSemantics(child: Text(AppStrings.str(lang, 'total_time'), style: const TextStyle(fontWeight: FontWeight.bold))),
           const SizedBox(height: 8),
-          Semantics(
+          NativeTextField(
             label: AppStrings.str(lang, 'total_time'),
-            child: TextField(
-              controller: _timeController,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-              keyboardType: TextInputType.number,
-              onChanged: (val) => setState(() {}),
-            ),
+            value: _timeController.text,
+            isNumber: true,
+            onChanged: (val) { _timeController.text = val; setState(() {}); },
           ),
+
           const SizedBox(height: 24),
           Text(AppStrings.str(lang, 'phases_title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ..._mutablePhases.asMap().entries.map((entry) {
@@ -376,14 +368,11 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
                   children: [
                     ExcludeSemantics(child: Text(AppStrings.str(lang, 'start_sec'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                     const SizedBox(height: 4),
-                    Semantics(
+                    NativeTextField(
                       label: AppStrings.str(lang, 'start_sec'),
-                      child: TextField(
-                        controller: TextEditingController(text: phase['start'].toString())..selection = TextSelection.collapsed(offset: phase['start'].toString().length),
-                        decoration: const InputDecoration(border: OutlineInputBorder()),
-                        keyboardType: TextInputType.number,
-                        onChanged: (val) => phase['start'] = int.tryParse(val) ?? 0,
-                      ),
+                      value: phase['start'].toString(),
+                      isNumber: true,
+                      onChanged: (val) => phase['start'] = int.tryParse(val) ?? 0,
                     ),
                     const SizedBox(height: 12),
                     
@@ -423,16 +412,16 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
                     if ((phase['action'] ?? PhaseAction.pourCircle) == PhaseAction.pourCircle || (phase['action'] ?? PhaseAction.pourCircle) == PhaseAction.pourCenter) ...[
                       ExcludeSemantics(child: Text(AppStrings.str(lang, 'water_ml'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                       const SizedBox(height: 4),
-                      Semantics(
+                      NativeTextField(
                         label: AppStrings.str(lang, 'water_ml'),
-                        child: TextField(
-                          controller: TextEditingController(text: (phase['amount'] as double) == (phase['amount'] as double).toInt() ? (phase['amount'] as double).toInt().toString() : phase['amount'].toString())..selection = TextSelection.collapsed(offset: ((phase['amount'] as double) == (phase['amount'] as double).toInt() ? (phase['amount'] as double).toInt().toString() : phase['amount'].toString()).length),
-                          decoration: const InputDecoration(border: OutlineInputBorder()),
-                          keyboardType: TextInputType.number,
-                          onChanged: (val) => phase['amount'] = double.tryParse(val) ?? 0.0,
-                        ),
+                        value: (phase['amount'] as double) == (phase['amount'] as double).toInt()
+                            ? (phase['amount'] as double).toInt().toString()
+                            : phase['amount'].toString(),
+                        isNumber: true,
+                        onChanged: (val) => phase['amount'] = double.tryParse(val) ?? 0.0,
                       ),
                     ],
+
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerRight,
@@ -481,6 +470,7 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
     );
   }
 }
+
 
 
 

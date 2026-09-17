@@ -8,6 +8,8 @@ import '../core/recipe.dart';
 import '../core/settings_state.dart';
 import '../core/ai_service.dart';
 import '../core/app_strings.dart';
+import '../widgets/native_text_field.dart';
+
 
 class AiChatScreen extends StatefulWidget {
   final Recipe? initialRecipe;
@@ -217,14 +219,12 @@ class _AiChatScreenState extends State<AiChatScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    decoration: InputDecoration(
-                      hintText: AppStrings.str(Provider.of<SettingsState>(context).appLanguage, 'ai_hint'),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    onSubmitted: (_) => _sendText(),
+                  child: NativeTextField(
+                    label: AppStrings.str(Provider.of<SettingsState>(context).appLanguage, 'ai_hint'),
+                    value: '',
+                    isNumber: false,
+                    onChanged: (val) => _textController.text = val,
+                    onDone: _sendText,
                   ),
                 ),
                   IconButton(
