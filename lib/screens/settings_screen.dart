@@ -205,12 +205,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               icon: const Icon(Icons.help_outline),
-              label: Text(AppStrings.str(lang, 'gemini_help_title')),
+              label: Text(AppStrings.str(lang, settings.aiProvider == 'gemini' ? 'gemini_help_title' : 'groq_help_title')),
               onPressed: () {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: Text(AppStrings.str(lang, 'gemini_help_title')),
+                    title: Text(AppStrings.str(lang, settings.aiProvider == 'gemini' ? 'gemini_help_title' : 'groq_help_title')),
                     content: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
