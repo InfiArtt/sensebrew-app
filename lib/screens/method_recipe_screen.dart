@@ -89,7 +89,7 @@ class _MethodRecipeScreenState extends State<MethodRecipeScreen> {
                         onPressed: () async {
                           final newRecipe = await Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => CustomRecipeScreen()),
+                            MaterialPageRoute(builder: (_) => CustomRecipeScreen(targetMethod: widget.method)),
                           );
                           if (newRecipe != null && newRecipe is Recipe) {
                             final mappedRecipe = newRecipe.copyWith(method: widget.method);

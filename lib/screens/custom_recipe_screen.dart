@@ -9,7 +9,8 @@ import '../widgets/native_text_field.dart';
 
 class CustomRecipeScreen extends StatefulWidget {
   final Recipe? initialRecipe;
-  const CustomRecipeScreen({super.key, this.initialRecipe});
+  final BrewMethod? targetMethod;
+  const CustomRecipeScreen({super.key, this.initialRecipe, this.targetMethod});
 
   @override
   State<CustomRecipeScreen> createState() => _CustomRecipeScreenState();
@@ -122,6 +123,7 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
       }).toList();
       currentDraft = Recipe(
         id: widget.initialRecipe?.id,
+        method: widget.initialRecipe?.method ?? widget.targetMethod ?? BrewMethod.v60,
         name: _hiddenAiName ?? _nameController.text,
         description: _hiddenAiDesc ?? _noteController.text,
         coffeeGrams: coffee,
@@ -131,7 +133,6 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
         targetGrindSizeMicrons: _targetGrindSizeMicrons,
         beanType: _beanType,
         extraIngredients: _hiddenAiExtra ?? _extraIngredientsController.text,
-        method: widget.initialRecipe?.method ?? BrewMethod.v60,
       );
     }
 
@@ -207,6 +208,7 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
 
     final recipe = Recipe(
       id: saveAsNew ? null : widget.initialRecipe?.id,
+      method: widget.initialRecipe?.method ?? widget.targetMethod ?? BrewMethod.v60,
       name: name,
       description: note,
       coffeeGrams: coffee,
@@ -216,7 +218,6 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
       targetGrindSizeMicrons: _targetGrindSizeMicrons,
       beanType: _beanType == 'Custom' ? (_customBeanController.text.isEmpty ? 'Custom' : _customBeanController.text) : _beanType,
       extraIngredients: extra,
-      method: widget.initialRecipe?.method ?? BrewMethod.v60,
     );
 
     Navigator.pop(context, recipe); // Return recipe to MethodRecipeScreen
