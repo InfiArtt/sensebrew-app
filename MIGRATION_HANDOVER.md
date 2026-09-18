@@ -29,6 +29,23 @@ Berikut adalah fitur-fitur yang sudah berfungsi penuh di versi Flutter dan perlu
 
 ---
 
+## 🐛 Daftar Bug & Isu dari Versi Flutter (Perhatian untuk Versi Expo)
+Berikut adalah daftar keluhan dan bug aktual yang dialami di versi Flutter. Mohon pastikan isu-isu ini **tidak direplikasi** di versi Expo:
+
+1. **Navigasi Usap (Swipe) TalkBack Tersangkut & Melompat (Form Input):**
+   Di halaman pembuatan resep custom, navigasi usap (swipe) tersangkut di judul halaman ("Buat resep seduh custom"). Pengguna terpaksa harus menyentuh manual area lain agar bisa lanjut. Saat di-swipe lagi, pembaca layar malah melompati kolom input teks (Nama & Catatan) dan langsung melompat jauh ke pengaturan "Jenis Biji Kopi".
+2. **Audio Guide Pembaca Layar (TalkBack) Mendahului Metronom:**
+   Aplikasi memiliki dua metode keluaran panduan suara: TTS internal dan Pembaca Layar (via Semantics). Ketukan metronom selalu akurat (_on tempo_). Namun, **suara dari Pembaca Layar (TalkBack) cenderung mendahului metronom sekitar 5-10ms**, sehingga terdengar tidak ritmis/balapan. Berbeda halnya dengan TTS internal aplikasi yang timing-nya lebih pas.
+   *(Solusi Expo: Perlu mekanisme penyesuaian delay/offset khusus antara pemanggilan audio dan pemanggilan accessibility announcement).*
+3. **Kategori Resep "Nyangkut" saat Buat Resep Baru:**
+   Sempat terjadi cacat logika (_logical flaw_) di mana ketika pengguna menekan tombol "Buat Resep Baru" dari dalam menu kategori Cupping, aplikasi malah menganggap pengguna sedang membuat resep V60. 
+   *(Solusi Expo: Pastikan parameter kategori (target method) dikirim dengan benar saat memanggil form kosong).*
+4. **Tombol Tanpa Label di AI Chat:**
+   Sempat terjadi tombol _Send_ dan _Microphone_ di layar obrolan AI tidak memiliki label aksesibilitas sehingga tidak dibaca oleh TalkBack.
+   *(Solusi Expo: Pastikan setiap `TouchableOpacity` atau `Pressable` yang hanya berisi ikon selalu diberi `accessibilityLabel`).*
+
+---
+
 ## 🚧 Catatan Khusus untuk Developer Expo (Temanmu)
 Hal-hal penting yang harus diperhatikan saat membangun ulang di Expo:
 
