@@ -233,24 +233,32 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     onDone: _sendText,
                   ),
                 ),
-                  IconButton(
-                    tooltip: AppStrings.str(Provider.of<SettingsState>(context, listen: false).appLanguage, 'ai_send_label'),
-                    icon: const Icon(Icons.send, color: Colors.blue),
-                    onPressed: _sendText,
+                  Semantics(
+                    button: true,
+                    label: AppStrings.str(Provider.of<SettingsState>(context, listen: false).appLanguage, 'ai_send_label'),
+                    excludeSemantics: true,
+                    child: IconButton(
+                      icon: const Icon(Icons.send, color: Colors.blue),
+                      onPressed: _sendText,
+                    ),
                   ),
-                  IconButton(
-                    tooltip: _isRecording ? AppStrings.str(Provider.of<SettingsState>(context, listen: false).appLanguage, 'ai_record_stop_label') : AppStrings.str(Provider.of<SettingsState>(context, listen: false).appLanguage, 'ai_record_start_label'),
-                    icon: Icon(_isRecording ? Icons.stop : Icons.mic, color: Colors.white),
-                    onPressed: () {
-                       if (_isRecording) {
-                         _stopRecording();
-                       } else {
-                         _startRecording();
-                       }
-                    },
-                    style: IconButton.styleFrom(
-                      backgroundColor: _isRecording ? Colors.red : Colors.purple,
-                      padding: const EdgeInsets.all(12),
+                  Semantics(
+                    button: true,
+                    label: _isRecording ? AppStrings.str(Provider.of<SettingsState>(context, listen: false).appLanguage, 'ai_record_stop_label') : AppStrings.str(Provider.of<SettingsState>(context, listen: false).appLanguage, 'ai_record_start_label'),
+                    excludeSemantics: true,
+                    child: IconButton(
+                      icon: Icon(_isRecording ? Icons.stop : Icons.mic, color: Colors.white),
+                      onPressed: () {
+                         if (_isRecording) {
+                           _stopRecording();
+                         } else {
+                           _startRecording();
+                         }
+                      },
+                      style: IconButton.styleFrom(
+                        backgroundColor: _isRecording ? Colors.red : Colors.purple,
+                        padding: const EdgeInsets.all(12),
+                      ),
                     ),
                   ),
               ],
