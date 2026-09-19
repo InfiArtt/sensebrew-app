@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:ui' as ui;
 
 class SettingsState extends ChangeNotifier {
-  String _geminiApiKey = 'AIzaSyAfhSwpVzfD4DPQBGn2CkouqMCgLNhg7sI';
+  String _geminiApiKey = '';
   String _appLanguage = 'id'; // UI and TTS language ('id' or 'en')
   double _ttsSpeed = 1.25;
   double _ttsPitch = 1.0;
@@ -50,8 +50,8 @@ class SettingsState extends ChangeNotifier {
       if (systemLang.startsWith('en')) systemLang = 'en-US';
     }
 
-    String savedKey = prefs.getString('gemini_api_key') ?? '';
-    _geminiApiKey = savedKey.isEmpty ? 'AIzaSyAfhSwpVzfD4DPQBGn2CkouqMCgLNhg7sI' : savedKey;
+    final savedKey = prefs.getString('gemini_api_key') ?? '';
+    _geminiApiKey = savedKey;
     _groqApiKey = prefs.getString('groq_api_key') ?? '';
     _aiProvider = prefs.getString('ai_provider') ?? 'gemini';
     _appLanguage = prefs.getString('app_language') ?? (systemLang.startsWith('en') ? 'en' : 'id');
