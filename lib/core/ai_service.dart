@@ -150,7 +150,7 @@ Valid actions: pourCircle, pourCenter, wait, stir, swirl, cap, flip, press, open
       }
 
     } else {
-      final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$cleanKey');
+      final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=$cleanKey');
       final parts = <Map<String, dynamic>>[{"text": systemInstruction}];
 
       if (prompt != null && prompt.isNotEmpty) parts.add({"text": "User request: $prompt"});
