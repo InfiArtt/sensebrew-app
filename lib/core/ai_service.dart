@@ -168,8 +168,23 @@ Valid actions: pourCircle, pourCenter, wait, stir, swirl, cap, flip, press, open
         "generationConfig": {"responseMimeType": "application/json"}
       });
 
-      final request = await http.post(url, body: body, headers: {'Content-Type': 'application/json'});
-      if (request.statusCode != 200) {
+      http.Response? request;
+      int retryCount = 0;
+      while (retryCount < 3) {
+        request = await http.post(url, body: body, headers: {'Content-Type': 'application/json'});
+        if (request.statusCode == 503 || request.statusCode == 500) {
+          retryCount++;
+          if (retryCount >= 3) break;
+          await Future.delayed(const Duration(seconds: 2));
+        } else {
+          break;
+        }
+      }
+
+      if (request!.statusCode != 200) {
+        if (request.statusCode == 503 || request.statusCode == 500) {
+          throw Exception(lang == 'en' ? 'Server is busy (Error 503). Please wait a moment and try again.' : 'Server sedang sibuk (Error 503). Silakan tunggu sebentar dan coba lagi.');
+        }
         if (request.statusCode == 429) {
           throw Exception(lang == 'en' ? 'API Quota Exhausted. Please try again tomorrow or switch to Groq in Settings.' : 'Kuota API harian habis. Silakan coba lagi besok atau ganti ke penyedia Groq di Pengaturan.');
         }
