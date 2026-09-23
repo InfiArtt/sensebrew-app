@@ -140,7 +140,12 @@ Valid actions: pourCircle, pourCenter, wait, stir, swirl, cap, flip, press, open
           'Authorization': 'Bearer $cleanKey',
           'User-Agent': 'python-requests/2.31.0'
         });
-        if (request.statusCode != 200) throw Exception('ChatError: ${request.statusCode} - ${request.body}');
+        if (request.statusCode != 200) {
+          if (request.statusCode == 429) {
+            throw Exception(lang == 'en' ? 'API Quota Exhausted. Please try again tomorrow or switch to Gemini in Settings.' : 'Kuota API harian habis. Silakan coba lagi besok atau ganti ke penyedia Gemini di Pengaturan.');
+          }
+          throw Exception('ChatError: ${request.statusCode}');
+        }
 
         final responseData = jsonDecode(request.body);
         jsonStr = responseData['choices'][0]['message']['content'] as String;
@@ -164,7 +169,12 @@ Valid actions: pourCircle, pourCenter, wait, stir, swirl, cap, flip, press, open
       });
 
       final request = await http.post(url, body: body, headers: {'Content-Type': 'application/json'});
-      if (request.statusCode != 200) throw Exception('Failed to communicate with Gemini: ${request.statusCode}\n${request.body}');
+      if (request.statusCode != 200) {
+        if (request.statusCode == 429) {
+          throw Exception(lang == 'en' ? 'API Quota Exhausted. Please try again tomorrow or switch to Groq in Settings.' : 'Kuota API harian habis. Silakan coba lagi besok atau ganti ke penyedia Groq di Pengaturan.');
+        }
+        throw Exception('Failed to communicate with Gemini: ${request.statusCode}');
+      }
 
       final responseData = jsonDecode(request.body);
       final candidates = responseData['candidates'] as List<dynamic>?;
