@@ -98,103 +98,94 @@ Valid actions: pourCircle, pourCenter, wait, stir, swirl, cap, flip, press, open
 
     String jsonStr = '';
 
+    final url = Uri.parse('https://divine-art-85f1.aswar-drummer.workers.dev/');
+    
+    // We construct a unified request body for our proxy.
+    // Our proxy currently acts differently based on provider:
+    // If it's groq, the proxy expects Groq payload. If it's Gemini, it expects Gemini payload.
+    // Wait, in our Cloudflare Worker, we just forward the body directly!
+    // So Flutter MUST construct the exact body that the target AI server expects.
+
+    String body = '';
+    
     if (provider == 'groq') {
-      try {
-        String finalPrompt = prompt ?? "";
+      String finalPrompt = prompt ?? "";
+      if (audioBase64 != null && audioBase64.isNotEmpty) {
+        // Use whisper via proxy
+        final whisperReq = http.MultipartRequest('POST', url);
+        whisperReq.headers['X-AI-Provider'] = 'groq';
+        whisperReq.headers['X-AI-Action'] = 'transcribe';
+        whisperReq.fields['model'] = 'whisper-large-v3';
+        whisperReq.fields['response_format'] = 'json';
+        whisperReq.files.add(http.MultipartFile.fromBytes('file', base64Decode(audioBase64), filename: 'audio.m4a'));
         
-        if (audioBase64 != null && audioBase64.isNotEmpty) {
-          final whisperUrl = Uri.parse('https://api.groq.com/openai/v1/audio/transcriptions');
-          var whisperReq = http.MultipartRequest('POST', whisperUrl);
-          whisperReq.headers['Authorization'] = 'Bearer $cleanKey';
-          whisperReq.headers['User-Agent'] = 'python-requests/2.31.0';
-          whisperReq.fields['model'] = 'whisper-large-v3';
-          whisperReq.fields['response_format'] = 'json';
-          whisperReq.files.add(http.MultipartFile.fromBytes('file', base64Decode(audioBase64), filename: 'audio.m4a'));
-          
-          final whisperRes = await whisperReq.send();
-          final whisperBody = await whisperRes.stream.bytesToString();
-          
-          if (whisperRes.statusCode != 200) {
-              throw Exception('WhisperError: ${whisperRes.statusCode} - $whisperBody');
-          }
-          
-          final whisperData = jsonDecode(whisperBody);
-          String transcribedText = whisperData['text'] ?? "";
-          finalPrompt += "\n[Voice Transcription]: $transcribedText";
+        final whisperRes = await whisperReq.send();
+        final whisperBody = await whisperRes.stream.bytesToString();
+        
+        if (whisperRes.statusCode != 200) {
+            throw Exception('WhisperError: ${whisperRes.statusCode} - $whisperBody');
         }
-
-        final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
-        final body = jsonEncode({
-          "model": "openai/gpt-oss-120b",
-          "messages": [
-            {
-              "role": "user",
-              "content": systemInstruction + "\n\nUser request: $finalPrompt"
-            }
-          ],
-          "response_format": {"type": "json_object"}
-        });
-
-        final request = await http.post(url, body: body, headers: {
-          'Content-Type': 'application/json', 
-          'Authorization': 'Bearer $cleanKey',
-          'User-Agent': 'python-requests/2.31.0'
-        });
-        if (request.statusCode != 200) {
-          if (request.statusCode == 429) {
-            throw Exception(lang == 'en' ? 'API Quota Exhausted. Please try again tomorrow or switch to Gemini in Settings.' : 'Kuota API harian habis. Silakan coba lagi besok atau ganti ke penyedia Gemini di Pengaturan.');
-          }
-          throw Exception('ChatError: ${request.statusCode}');
-        }
-
-        final responseData = jsonDecode(request.body);
-        jsonStr = responseData['choices'][0]['message']['content'] as String;
-
-      } catch (e) {
-        throw Exception('Koneksi Groq gagal. (${e.toString()})');
+        
+        final whisperData = jsonDecode(whisperBody);
+        String transcribedText = whisperData['text'] ?? "";
+        finalPrompt += "\n[Voice Transcription]: $transcribedText";
       }
-
+      
+      body = jsonEncode({
+        "model": "openai/gpt-oss-120b",
+        "messages": [
+          {
+            "role": "user",
+            "content": systemInstruction + "\n\nUser request: " + finalPrompt
+          }
+        ],
+        "response_format": {"type": "json_object"}
+      });
     } else {
-      final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=$cleanKey');
       final parts = <Map<String, dynamic>>[{"text": systemInstruction}];
-
       if (prompt != null && prompt.isNotEmpty) parts.add({"text": "User request: $prompt"});
       if (audioBase64 != null && audioBase64.isNotEmpty) {
         parts.add({"inlineData": {"mimeType": "audio/m4a", "data": audioBase64}});
       }
-
-      final body = jsonEncode({
+      body = jsonEncode({
         "contents": [{"parts": parts}],
         "generationConfig": {"responseMimeType": "application/json"}
       });
+    }
 
-      http.Response? request;
-      int retryCount = 0;
-      while (retryCount < 3) {
-        request = await http.post(url, body: body, headers: {'Content-Type': 'application/json'});
-        if (request.statusCode == 503 || request.statusCode == 500) {
-          retryCount++;
-          if (retryCount >= 3) break;
-          await Future.delayed(const Duration(seconds: 2));
-        } else {
-          break;
-        }
+    http.Response? request;
+    int retryCount = 0;
+    while (retryCount < 3) {
+      request = await http.post(url, body: body, headers: {
+        'Content-Type': 'application/json',
+        'X-AI-Provider': provider
+      });
+      if (request.statusCode == 503 || request.statusCode == 500) {
+        retryCount++;
+        if (retryCount >= 3) break;
+        await Future.delayed(const Duration(seconds: 2));
+      } else {
+        break;
       }
+    }
 
-      if (request!.statusCode != 200) {
-        if (request.statusCode == 503 || request.statusCode == 500) {
-          throw Exception(lang == 'en' ? 'Server is busy (Error 503). Please wait a moment and try again.' : 'Server sedang sibuk (Error 503). Silakan tunggu sebentar dan coba lagi.');
-        }
-        if (request.statusCode == 429) {
-          throw Exception(lang == 'en' ? 'API Quota Exhausted. Please try again tomorrow or switch to Groq in Settings.' : 'Kuota API harian habis. Silakan coba lagi besok atau ganti ke penyedia Groq di Pengaturan.');
-        }
-        throw Exception('Failed to communicate with Gemini: ${request.statusCode}');
+    if (request!.statusCode != 200) {
+      if (request.statusCode == 503 || request.statusCode == 500) {
+        throw Exception(lang == 'en' ? 'Server is busy (Error 503). Please wait a moment and try again.' : 'Server sedang sibuk (Error 503). Silakan tunggu sebentar dan coba lagi.');
       }
+      if (request.statusCode == 429) {
+        throw Exception(lang == 'en' ? 'API Quota Exhausted.' : 'Kuota API harian habis.');
+      }
+      throw Exception('Failed to communicate with Proxy: ${request.statusCode}');
+    }
 
-      final responseData = jsonDecode(request.body);
+    final responseData = jsonDecode(request.body);
+    
+    if (provider == 'groq') {
+      jsonStr = responseData['choices'][0]['message']['content'] as String;
+    } else {
       final candidates = responseData['candidates'] as List<dynamic>?;
-      if (candidates == null || candidates.isEmpty) throw Exception('Empty response from Gemini');
-
+      if (candidates == null || candidates.isEmpty) throw Exception('Empty response from AI');
       jsonStr = candidates[0]['content']['parts'][0]['text'] as String;
     }
     
