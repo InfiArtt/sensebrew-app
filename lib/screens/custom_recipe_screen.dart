@@ -138,7 +138,10 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
 
     final newRecipe = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => AiChatScreen(initialRecipe: currentDraft ?? widget.initialRecipe)),
+      MaterialPageRoute(builder: (_) => AiChatScreen(
+        initialRecipe: currentDraft ?? widget.initialRecipe,
+        targetMethod: widget.targetMethod ?? widget.initialRecipe?.method,
+      )),
     );
 
     if (newRecipe != null && newRecipe is Recipe) {

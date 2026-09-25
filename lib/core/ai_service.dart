@@ -42,6 +42,7 @@ class AiService {
     required String lang,
     String? audioBase64,
     Recipe? currentRecipe,
+    BrewMethod? targetMethod,
   }) async {
     if (apiKey.trim().isEmpty) {
       throw Exception('API Key kosong. Silakan isi di Pengaturan (Settings).');
@@ -49,11 +50,24 @@ class AiService {
 
     final cleanKey = apiKey.trim();
     
+    // Determine effective method: from currentRecipe, or targetMethod, or default V60
+    final BrewMethod effectiveMethod = currentRecipe?.method ?? targetMethod ?? BrewMethod.v60;
+    
+    // Human-readable method names for the prompt
+    final Map<BrewMethod, String> methodNames = {
+      BrewMethod.v60: 'V60 Pour-Over',
+      BrewMethod.frenchPress: 'French Press',
+      BrewMethod.aeropress: 'Aeropress',
+      BrewMethod.vietnamDrip: 'Vietnam Drip',
+      BrewMethod.cupping: 'SCA Cupping',
+    };
+    final String methodName = methodNames[effectiveMethod] ?? 'V60 Pour-Over';
+
     String contextInfo = "";
     if (currentRecipe != null) {
-      contextInfo = "\nThe user is currently editing a recipe: '${AppStrings.str(lang, currentRecipe.name)}'.\nCurrent Method: ${currentRecipe.method.name}\nCurrent Bean Type: ${currentRecipe.beanType}\nCurrent Grind Size: ${currentRecipe.targetGrindSizeMicrons} microns.\nCurrent Extra Ingredients: ${AppStrings.str(lang, currentRecipe.extraIngredients)}\nCurrent Description: ${AppStrings.str(lang, currentRecipe.description)}\nCurrent state: ${currentRecipe.coffeeGrams}g coffee, ${currentRecipe.totalWaterMl}ml water.\nPhases: ${currentRecipe.phases.map((e) => 'At ${e.startTimeSeconds}s: ${e.action.name} ${e.pourAmountMl}ml').join(', ')}\nPlease modify this recipe based on the user's request. Keep everything else intact unless requested to change.";
+      contextInfo = "\nThe user is currently editing a recipe: '${AppStrings.str(lang, currentRecipe.name)}'.\nCurrent Method: ${methodName}\nCurrent Bean Type: ${currentRecipe.beanType}\nCurrent Grind Size: ${currentRecipe.targetGrindSizeMicrons} microns.\nCurrent Extra Ingredients: ${AppStrings.str(lang, currentRecipe.extraIngredients)}\nCurrent Description: ${AppStrings.str(lang, currentRecipe.description)}\nCurrent state: ${currentRecipe.coffeeGrams}g coffee, ${currentRecipe.totalWaterMl}ml water.\nPhases: ${currentRecipe.phases.map((e) => 'At ${e.startTimeSeconds}s: ${e.action.name} ${e.pourAmountMl}ml').join(', ')}\nPlease modify this recipe based on the user's request. Keep everything else intact unless requested to change.";
     } else {
-      contextInfo = "\nPlease create a new pour-over coffee recipe based on the user's request.";
+      contextInfo = "\nPlease create a new $methodName coffee recipe based on the user's request. The brew method MUST be $methodName — do NOT switch to a different brewing method.";
     }
 
     final String appLangLabel = lang == 'en' ? 'English' : 'Indonesian';
@@ -68,10 +82,24 @@ The app is currently set to $appLangLabel.
   RULES for the recipe data:
   - ABSOLUTE RULE — NO EXCEPTIONS: For "name", "description", "extraIngredients", and ALL phase "instructionText", you MUST ALWAYS return a JSON OBJECT with BOTH "id" (Indonesian) and "en" (English) keys. NEVER return a plain string for these fields. Example: {"id": "Tuang air perlahan", "en": "Pour water slowly"}.
   - The "chatMessage" field is where you respond in the user's language as a plain string.
-  - For "targetGrindSizeMicrons", output an integer. Use 400 (Sangat Halus/Espresso), 600 (Halus/Aeropress), 800 (Sedang/V60), 1000 (Agak Kasar/Chemex), 1200 (Kasar/French Press), or 1400 (Sangat Kasar/Cold Brew).
+  - For "targetGrindSizeMicrons", output an integer. Use 400 (Espresso), 600 (Aeropress), 700 (Bright/Filter/Fruity), 800 (V60 Standard), 1000 (Chemex), 1200 (French Press), or 1400 (Cold Brew).
   - For "extraIngredients", write cleanly with metric units. DO NOT use acronyms like "sdm" or "SKM". If none, use {"id": "", "en": ""}.
   - At the very end of "description", ALWAYS add a new paragraph predicting the flavor profile in BOTH languages (inside the "id" and "en" keys respectively).
-  - If you use physical actions like stir, swirl, cap, or flip, you MUST append a "wait" action exactly 5 seconds AFTER the physical action to give the user time to physically perform it. Do NOT put the wait action at the exact same startTimeSeconds.
+  - If you use physical actions like stir, swirl, cap, or flip, you MUST append a "wait" action exactly 5 seconds AFTER the physical action to give the user time to physically perform it.
+  - "coffeeGrams" must be at least 15g for a standard single serving. Never go below 12g unless explicitly requested.
+  - CRITICAL TIMING RULE: NEVER place two different actions at the exact same `startTimeSeconds`. Each phase MUST have a unique start time. For example, if you pour water at 60s, and you want to stir afterwards, the stir action MUST be placed at a later time (e.g. 70s or 75s), NOT at 60s. Overlapping times will crash the app's timer.
+  - CRITICAL BLOOM RULE: NEVER insert a "wait" phase between a bloom pour and the next pour. The time gap between phases IS the waiting period — the app's timer counts it automatically and announces a countdown before the next phase. Correct example: bloom pourCircle at 0s (45ml), then next pourCircle at 35s (no wait phase in between). WRONG example: bloom at 0s, wait at 5s, pour at 35s — this blocks the app countdown system.
+  - "wait" action is ONLY allowed: (a) after physical actions like stir/swirl/cap/flip, OR (b) during French Press / long steep methods where a multi-minute rest is needed.
+
+  FLAVOR PROFILE TRANSLATION GUIDE:
+  - Fruity / Bright / High acidity / Tidak pahit / Asam cerah: grind=700, ratio=1:15. TECHNIQUE: Calculate total water. Bloom pourCircle with exactly 2x coffee weight at 0s. Subtract bloom water from total water, then split the remaining water equally into exactly 2 large fast pours at 35s and 70s. (Fewer, larger pours = shorter contact time = brighter acidity). Do NOT use 4 equal small pours.
+  - Balanced / Seimbang: grind=800, ratio=1:15. TECHNIQUE: Calculate total water. Bloom with 2.5x coffee weight at 0s. Split remaining water into 2 or 3 equal pours spaced 30-35s apart.
+  - Chocolatey / Coklat / Bold / Low acidity: grind=900, ratio=1:14. TECHNIQUE: Calculate total water. Bloom with 3x coffee weight at 0s. Subtract bloom water from total, then split the remaining water into 3 or 4 equal small pours (Pulse Pouring) spaced 30s apart. Add a "stir" action 10 seconds after the final pour starts. (More pours + agitation = higher extraction, fuller body, less acidity).
+  - Sweet / Manis / Caramel: grind=800, ratio=1:16. TECHNIQUE: bloom at 0s, wait 45s, then 2-3 slow pours spaced 40s apart.
+  - Clean / Bersih / Delicate: grind=700, ratio=1:16. TECHNIQUE: small bloom, 3-4 very gentle pours, no stir, no swirl.
+  - Strong / Kuat / Intense: grind=700, ratio=1:12. TECHNIQUE: small bloom, 1 big concentrated pour.
+  - Light / Ringan: grind=850, ratio=1:17. TECHNIQUE: bloom, 2 fast large pours.
+  When the user's request matches a flavor profile above, apply the correct TECHNIQUE automatically.
 
 The JSON must strictly follow this structure:
 {
@@ -235,7 +263,7 @@ Valid actions: pourCircle, pourCenter, wait, stir, swirl, cap, flip, press, open
         targetGrindSizeMicrons: (recipeData['targetGrindSizeMicrons'] as num?)?.toInt() ?? currentRecipe?.targetGrindSizeMicrons ?? 800,
         extraIngredients: parseI18n(recipeData['extraIngredients']),
         beanType: recipeData['beanType'] as String? ?? currentRecipe?.beanType ?? 'Arabica',
-        method: currentRecipe?.method ?? BrewMethod.v60,
+        method: effectiveMethod,
       );
       
       

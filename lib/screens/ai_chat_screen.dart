@@ -13,7 +13,8 @@ import '../widgets/native_text_field.dart';
 
 class AiChatScreen extends StatefulWidget {
   final Recipe? initialRecipe;
-  const AiChatScreen({super.key, this.initialRecipe});
+  final BrewMethod? targetMethod;
+  const AiChatScreen({super.key, this.initialRecipe, this.targetMethod});
 
   @override
   State<AiChatScreen> createState() => _AiChatScreenState();
@@ -120,6 +121,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
         audioBase64: audioBase64,
         currentRecipe: _currentDraft,
         lang: settings.appLanguage,
+        targetMethod: widget.targetMethod,
       );
 
       if (aiResponse != null) {
