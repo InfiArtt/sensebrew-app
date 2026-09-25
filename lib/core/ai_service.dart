@@ -63,6 +63,43 @@ class AiService {
     };
     final String methodName = methodNames[effectiveMethod] ?? 'V60 Pour-Over';
 
+    String methodSpecificGuide = "";
+    if (effectiveMethod == BrewMethod.v60) {
+      methodSpecificGuide = """
+  V60 POUR-OVER FLAVOR & TECHNIQUE GUIDE:
+  - Fruity / Bright: grind=700, ratio=1:15. TECHNIQUE: Calculate total water. Bloom pourCircle with exactly 2x coffee weight at 0s. Subtract bloom water from total water, then split the remaining water equally into exactly 2 large fast pours at 35s and 70s. (Fewer, larger pours = shorter contact time = brighter acidity).
+  - Balanced: grind=800, ratio=1:15. TECHNIQUE: Bloom 2.5x coffee weight at 0s. Split remaining water into 2 or 3 equal pours spaced 35s apart.
+  - Chocolatey / Bold: grind=900, ratio=1:14. TECHNIQUE: Bloom 3x coffee weight at 0s. Split remaining water into 3 or 4 small pours spaced 30s apart. Add a "stir" action exactly 10s after the final pour starts.
+  - Sweet / Caramel: grind=800, ratio=1:16. TECHNIQUE: bloom at 0s, wait 45s, then 2-3 slow pours spaced 40s apart.
+""";
+    } else if (effectiveMethod == BrewMethod.frenchPress) {
+      methodSpecificGuide = """
+  FRENCH PRESS TECHNIQUE GUIDE (IMMERSION):
+  - Standard Grind: 1200 (Coarse), Ratio: 1:15.
+  - Hoffmann Method (Default for Clean Cup): pourCenter ALL water at 0s. 'wait' at 15s. 'stir' (break crust) at 240s (4 mins). 'wait' at 245s (let grounds sink). 'press' at 540s (9 mins).
+  - Traditional Method (Default for Bold): pourCenter ALL water at 0s. 'wait' at 15s. 'press' slowly at 240s (4 mins).
+""";
+    } else if (effectiveMethod == BrewMethod.aeropress) {
+      methodSpecificGuide = """
+  AEROPRESS TECHNIQUE GUIDE (IMMERSION + PRESSURE):
+  - Standard Grind: 600, Ratio: 1:15.
+  - Inverted Technique (For Bold/Full Body): pourCenter ALL water at 0s. 'stir' at 15s. 'wait' at 20s. 'flip' at 90s. 'wait' at 95s. 'press' slowly for 30s starting at 105s.
+  - Standard / Upright Technique (For Clean/Bright): pourCenter ALL water at 0s. 'stir' at 15s. 'cap' at 20s (CRITICAL: this creates a vacuum to stop water dripping). 'wait' at 25s. 'press' slowly for 30s starting at 90s. Do NOT use 'flip'.
+""";
+    } else if (effectiveMethod == BrewMethod.vietnamDrip) {
+      methodSpecificGuide = """
+  VIETNAM DRIP TECHNIQUE GUIDE (SLOW DRIP):
+  - Standard Grind: 800, Ratio: 1:10 (usually over condensed milk).
+  - Technique: pourCenter a small bloom (20ml) at 0s. pourCenter remaining water at 30s. 'cap' the lid at 40s. 'wait' at 45s for 4-5 minutes as it drips.
+""";
+    } else if (effectiveMethod == BrewMethod.cupping) {
+      methodSpecificGuide = """
+  SCA CUPPING TECHNIQUE GUIDE (EVALUATION):
+  - Standard Grind: 850, Ratio: strictly 8.25g per 150ml (1:18).
+  - Technique: pourCenter ALL water at 0s. 'wait' at 15s. 'stir' (to break crust) 3 times at 240s (4 mins). 'wait' at 245s. Taste coffee starting at 600s (10 mins).
+""";
+    }
+
     String contextInfo = "";
     if (currentRecipe != null) {
       contextInfo = "\nThe user is currently editing a recipe: '${AppStrings.str(lang, currentRecipe.name)}'.\nCurrent Method: ${methodName}\nCurrent Bean Type: ${currentRecipe.beanType}\nCurrent Grind Size: ${currentRecipe.targetGrindSizeMicrons} microns.\nCurrent Extra Ingredients: ${AppStrings.str(lang, currentRecipe.extraIngredients)}\nCurrent Description: ${AppStrings.str(lang, currentRecipe.description)}\nCurrent state: ${currentRecipe.coffeeGrams}g coffee, ${currentRecipe.totalWaterMl}ml water.\nPhases: ${currentRecipe.phases.map((e) => 'At ${e.startTimeSeconds}s: ${e.action.name} ${e.pourAmountMl}ml').join(', ')}\nPlease modify this recipe based on the user's request. Keep everything else intact unless requested to change.";
@@ -91,15 +128,7 @@ The app is currently set to $appLangLabel.
   - CRITICAL BLOOM RULE: NEVER insert a "wait" phase between a bloom pour and the next pour. The time gap between phases IS the waiting period — the app's timer counts it automatically and announces a countdown before the next phase. Correct example: bloom pourCircle at 0s (45ml), then next pourCircle at 35s (no wait phase in between). WRONG example: bloom at 0s, wait at 5s, pour at 35s — this blocks the app countdown system.
   - "wait" action is ONLY allowed: (a) after physical actions like stir/swirl/cap/flip, OR (b) during French Press / long steep methods where a multi-minute rest is needed.
 
-  FLAVOR PROFILE TRANSLATION GUIDE:
-  - Fruity / Bright / High acidity / Tidak pahit / Asam cerah: grind=700, ratio=1:15. TECHNIQUE: Calculate total water. Bloom pourCircle with exactly 2x coffee weight at 0s. Subtract bloom water from total water, then split the remaining water equally into exactly 2 large fast pours at 35s and 70s. (Fewer, larger pours = shorter contact time = brighter acidity). Do NOT use 4 equal small pours.
-  - Balanced / Seimbang: grind=800, ratio=1:15. TECHNIQUE: Calculate total water. Bloom with 2.5x coffee weight at 0s. Split remaining water into 2 or 3 equal pours spaced 30-35s apart.
-  - Chocolatey / Coklat / Bold / Low acidity: grind=900, ratio=1:14. TECHNIQUE: Calculate total water. Bloom with 3x coffee weight at 0s. Subtract bloom water from total, then split the remaining water into 3 or 4 equal small pours (Pulse Pouring) spaced 30s apart. Add a "stir" action 10 seconds after the final pour starts. (More pours + agitation = higher extraction, fuller body, less acidity).
-  - Sweet / Manis / Caramel: grind=800, ratio=1:16. TECHNIQUE: bloom at 0s, wait 45s, then 2-3 slow pours spaced 40s apart.
-  - Clean / Bersih / Delicate: grind=700, ratio=1:16. TECHNIQUE: small bloom, 3-4 very gentle pours, no stir, no swirl.
-  - Strong / Kuat / Intense: grind=700, ratio=1:12. TECHNIQUE: small bloom, 1 big concentrated pour.
-  - Light / Ringan: grind=850, ratio=1:17. TECHNIQUE: bloom, 2 fast large pours.
-  When the user's request matches a flavor profile above, apply the correct TECHNIQUE automatically.
+$methodSpecificGuide
 
 The JSON must strictly follow this structure:
 {
