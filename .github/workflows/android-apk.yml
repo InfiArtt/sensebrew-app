@@ -1,0 +1,110 @@
+# Builds the Expo app's QA APK on GitHub instead of a developer's laptop, and
+# publishes it as the `qa-latest` pre-release so testers get one stable link:
+#
+#   https://github.com/InfiArtt/sensebrew-app/releases/download/qa-latest/sensebrew-qa.apk
+#
+# That URL never changes: each run deletes and recreates the release under the
+# same tag and asset name, pointing at the commit it built.
+
+name: Android QA APK
+
+on:
+  push:
+    branches: [master, expo-rewrite]
+    paths:
+      - 'expo/**'
+      - '.github/workflows/android-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write # to publish the release
+
+# Only the newest build is worth finishing: two runs publishing the same
+# release at once would race, and the older APK is already stale.
+concurrency:
+  group: android-qa-apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: expo
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22 # react-native 0.86 wants ^22.13
+          cache: npm
+          cache-dependency-path: expo/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17 # Gradle 9.3 needs 17+
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: npm ci
+
+      # Cheap gates before a 10-minute build. `check` asserts the brewing
+      # arithmetic and the byte-for-byte click track against known-good values,
+      # so a change that would put a blind user off-beat fails here.
+      - run: npm run typecheck
+      - run: npm run check
+
+      # android/ is gitignored and regenerated here, which is also why the
+      # architecture list is passed on the command line below rather than read
+      # from android/gradle.properties: an edit to that file never reaches CI.
+      - run: npx expo prebuild --platform android --no-install
+
+      - name: Build release APK (arm64 only)
+        working-directory: expo/android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+
+      - name: Collect APK and signing certificate
+        id: apk
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk sensebrew-qa.apk
+
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -n 1)apksigner"
+          cert="$("$apksigner" verify --print-certs sensebrew-qa.apk | sed -n 's/.*SHA-256 digest: //p' | head -n 1)"
+          size="$(du -m sensebrew-qa.apk | cut -f1)"
+
+          echo "Signing certificate SHA-256: $cert"
+          echo "cert=$cert" >> "$GITHUB_OUTPUT"
+          echo "size=$size" >> "$GITHUB_OUTPUT"
+
+      # Kept alongside the release in case the release step ever fails.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sensebrew-qa-apk
+          path: expo/sensebrew-qa.apk
+          retention-days: 14
+
+      - name: Publish qa-latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CERT: ${{ steps.apk.outputs.cert }}
+          SIZE: ${{ steps.apk.outputs.size }}
+        run: |
+          subject="$(git log -1 --format=%s)"
+
+          gh release delete qa-latest --yes --cleanup-tag || true
+
+          gh release create qa-latest sensebrew-qa.apk \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            --title "SenseBrew QA build" \
+            --notes "Built from \`${GITHUB_SHA::7}\` on \`${GITHUB_REF_NAME}\`: ${subject}
+
+          - arm64-v8a only: installs on any 64-bit Android phone, not on an emulator or a 32-bit phone.
+          - About ${SIZE} MB.
+          - Signed with the React Native debug keystore, for sideloading only (not the Play Store).
+          - Signing certificate SHA-256: \`${CERT}\`
+
+          Installing over a previous QA build keeps settings and recipes as long as the certificate above is unchanged."

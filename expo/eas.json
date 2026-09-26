@@ -1,0 +1,33 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "qa": {
+      "//": "APK a tester can sideload: no Expo Go, no dev server, just install and open.",
+      "android": {
+        "buildType": "apk"
+      },
+      "channel": "qa",
+      "distribution": "internal"
+    },
+    "development": {
+      "//": "Dev client, for when a change needs a native module Expo Go does not carry.",
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
