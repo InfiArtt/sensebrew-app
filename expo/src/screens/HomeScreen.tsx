@@ -1,5 +1,6 @@
 // Ported from lib/screens/home_screen.dart.
 import Icon, { type IconName } from '../components/Icon';
+import VisualText from '../components/VisualText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -86,14 +87,13 @@ export default function HomeScreen({ navigation }: Props) {
             "calibrate flow rate, <status>". Without this the inner text becomes
             a second stop saying the status again, which is what QA reported.
           */}
-          <Text
-            importantForAccessibility="no-hide-descendants"
+          <VisualText
             style={styles.bigButtonText}
           >
             {isCalibrated
               ? str(lang, 'calibrated_btn', [flowRate])
               : `${str(lang, 'calibrate_flow_rate')}\n${str(lang, 'uncalibrated_btn')}`}
-          </Text>
+          </VisualText>
         </Pressable>
       </View>
 
@@ -106,12 +106,11 @@ export default function HomeScreen({ navigation }: Props) {
           style={({ pressed }) => [styles.calcButton, pressed && styles.pressed]}
         >
           <Icon name="calculate" size={24} color={colors.onPrimary} />
-          <Text
-            importantForAccessibility="no-hide-descendants"
+          <VisualText
             style={styles.calcButtonText}
           >
             {str(lang, 'pour_calc_title')}
-          </Text>
+          </VisualText>
         </Pressable>
       </View>
 
@@ -142,8 +141,8 @@ export default function HomeScreen({ navigation }: Props) {
                 importantForAccessibility="no-hide-descendants"
                 style={styles.cardBody}
               >
-                <Text style={styles.cardTitle}>{entry.name}</Text>
-                <Text style={styles.cardSubtitle}>{desc}</Text>
+                <VisualText style={styles.cardTitle}>{entry.name}</VisualText>
+                <VisualText style={styles.cardSubtitle}>{desc}</VisualText>
               </View>
             </Pressable>
           );

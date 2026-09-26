@@ -1,5 +1,6 @@
 // Ported from lib/screens/method_recipe_screen.dart.
 import Icon from '../components/Icon';
+import VisualText from '../components/VisualText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useLayoutEffect, useState } from 'react';
 import {
@@ -120,7 +121,7 @@ export default function MethodRecipeScreen({ navigation, route }: Props) {
           style={({ pressed }) => [styles.newRecipeButton, pressed && styles.pressed]}
         >
           <Icon name="add" size={24} color={colors.purple900} />
-          <Text style={styles.newRecipeText}>{str(lang, 'custom_recipe_btn')}</Text>
+          <VisualText style={styles.newRecipeText}>{str(lang, 'custom_recipe_btn')}</VisualText>
         </Pressable>
       </View>
 
@@ -158,18 +159,16 @@ export default function MethodRecipeScreen({ navigation, route }: Props) {
                   "<name>, N grams of coffee, N millilitres of water". Leaving
                   these visible added a second stop that just said "13g | 200ml".
                 */}
-                <Text
-                  importantForAccessibility="no-hide-descendants"
+                <VisualText
                   style={styles.recipeTitle}
                 >
                   {str(lang, recipe.name)}
-                </Text>
-                <Text
-                  importantForAccessibility="no-hide-descendants"
+                </VisualText>
+                <VisualText
                   style={styles.recipeMeta}
                 >
                   {`${dose}g | ${water}ml`}
-                </Text>
+                </VisualText>
               </Pressable>
 
               <Pressable
@@ -215,7 +214,7 @@ export default function MethodRecipeScreen({ navigation, route }: Props) {
               style={({ pressed }) => [styles.sheetPrimary, pressed && styles.pressed]}
             >
               <Icon name="play-arrow" size={24} color={colors.onPrimary} />
-              <Text style={styles.sheetPrimaryText}>{str(lang, 'brew_btn')}</Text>
+              <VisualText style={styles.sheetPrimaryText}>{str(lang, 'brew_btn')}</VisualText>
             </Pressable>
 
             <Pressable
@@ -231,7 +230,7 @@ export default function MethodRecipeScreen({ navigation, route }: Props) {
               style={({ pressed }) => [styles.sheetOutlined, pressed && styles.pressed]}
             >
               <Icon name="edit" size={24} color={colors.primary} />
-              <Text style={styles.sheetOutlinedText}>{str(lang, 'edit_btn')}</Text>
+              <VisualText style={styles.sheetOutlinedText}>{str(lang, 'edit_btn')}</VisualText>
             </Pressable>
 
             <Pressable
@@ -241,9 +240,9 @@ export default function MethodRecipeScreen({ navigation, route }: Props) {
               style={({ pressed }) => [styles.sheetOutlined, pressed && styles.pressed]}
             >
               <Icon name="delete" size={24} color={colors.red} />
-              <Text style={[styles.sheetOutlinedText, { color: colors.red }]}>
+              <VisualText style={[styles.sheetOutlinedText, { color: colors.red }]}>
                 {str(lang, 'delete_btn')}
-              </Text>
+              </VisualText>
             </Pressable>
           </View>
         )}

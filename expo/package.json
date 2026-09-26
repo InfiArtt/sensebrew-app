@@ -28,7 +28,7 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "check": "node scripts/check-brew-plan.js",
+    "check": "node scripts/check-brew-plan.js && node scripts/check-a11y.js",
     "typecheck": "tsc --noEmit",
     "start": "expo start",
     "android": "expo run:android",

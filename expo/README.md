@@ -50,7 +50,13 @@ Perintah ini butuh login akun Expo.
 
 | Perintah | Kegunaan |
 |---|---|
-| `npm run check` | Bandingkan aritmetika seduh, tabel data, dan click track dengan nilai dari versi Flutter |
+| `npm run check` | Bandingkan aritmetika seduh, tabel data, dan click track dengan nilai dari versi Flutter, dan pastikan tidak ada kontrol yang dibaca dua kali oleh pembaca layar |
+
+Aturan untuk pembaca layar yang dijaga `check`: kontrol yang punya
+`accessibilityLabel` tidak boleh berisi `<Text>` biasa — pakai
+`components/VisualText` untuk teks yang terlihat. TalkBack membaca labelnya
+saja, tapi Jieshuo membaca label **lalu** teks di dalamnya, jadi tanpa aturan ini
+setiap tombol terdengar dua kali di Jieshuo.
 | `npm run typecheck` | TypeScript |
 
 Catatan build: kalau habis mengubah aset atau import ikon, jalankan

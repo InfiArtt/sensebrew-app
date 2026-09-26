@@ -53,7 +53,8 @@ jobs:
 
       # Cheap gates before a 10-minute build. `check` asserts the brewing
       # arithmetic and the byte-for-byte click track against known-good values,
-      # so a change that would put a blind user off-beat fails here.
+      # so a change that would put a blind user off-beat fails here, and that no
+      # control would be read out twice by Jieshuo (scripts/check-a11y.js).
       - run: npm run typecheck
       - run: npm run check
 

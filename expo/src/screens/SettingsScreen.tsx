@@ -1,5 +1,6 @@
 // Ported from lib/screens/settings_screen.dart.
 import Icon from '../components/Icon';
+import VisualText from '../components/VisualText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Slider from '@react-native-community/slider';
 import * as Speech from 'expo-speech';
@@ -78,8 +79,8 @@ function ToggleRow({ title, subtitle, value, onValueChange }: ToggleProps) {
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       <View style={styles.rowText}>
-        <Text style={styles.rowTitle}>{title}</Text>
-        <Text style={styles.rowSubtitle}>{subtitle}</Text>
+        <VisualText style={styles.rowTitle}>{title}</VisualText>
+        <VisualText style={styles.rowSubtitle}>{subtitle}</VisualText>
       </View>
       <Switch
         value={value}
@@ -195,7 +196,7 @@ function HelpSheet({ visible, title, body, closeLabel, onClose }: HelpSheetProps
           onPress={onClose}
           style={({ pressed }) => [styles.helpClose, pressed && styles.pressed]}
         >
-          <Text style={styles.helpCloseText}>{closeLabel}</Text>
+          <VisualText style={styles.helpCloseText}>{closeLabel}</VisualText>
         </Pressable>
       </View>
     </Modal>
@@ -287,9 +288,9 @@ export default function SettingsScreen({ navigation }: Props) {
             onPress={() => setSheet('language')}
             style={({ pressed }) => [styles.valueButton, pressed && styles.pressed]}
           >
-            <Text style={styles.valueButtonText}>
+            <VisualText style={styles.valueButtonText}>
               {lang === 'en' ? 'English' : 'Indonesia'}
-            </Text>
+            </VisualText>
           </Pressable>
         </SettingRow>
 
@@ -304,9 +305,9 @@ export default function SettingsScreen({ navigation }: Props) {
             onPress={() => setSheet('provider')}
             style={({ pressed }) => [styles.valueButton, pressed && styles.pressed]}
           >
-            <Text style={styles.valueButtonText}>
+            <VisualText style={styles.valueButtonText}>
               {settings.aiProvider === 'gemini' ? 'Gemini' : 'Groq'}
-            </Text>
+            </VisualText>
           </Pressable>
         </SettingRow>
 
@@ -328,7 +329,7 @@ export default function SettingsScreen({ navigation }: Props) {
                 style={({ pressed }) => [styles.helpButton, pressed && styles.pressed]}
               >
                 <Icon name="help-outline" size={22} color={colors.primary} />
-                <Text style={styles.helpButtonText}>{str(lang, 'gemini_help_title')}</Text>
+                <VisualText style={styles.helpButtonText}>{str(lang, 'gemini_help_title')}</VisualText>
               </Pressable>
             </>
           ) : (
@@ -398,11 +399,11 @@ export default function SettingsScreen({ navigation }: Props) {
             onPress={() => setSheet('channel')}
             style={({ pressed }) => [styles.valueButton, pressed && styles.pressed]}
           >
-            <Text style={styles.valueButtonText}>
+            <VisualText style={styles.valueButtonText}>
               {settings.audioOutputMode === 'tts'
                 ? str(lang, 'tts_channel_app')
                 : str(lang, 'tts_channel_sr')}
-            </Text>
+            </VisualText>
           </Pressable>
         </SettingRow>
 
@@ -453,9 +454,9 @@ export default function SettingsScreen({ navigation }: Props) {
                 }}
                 style={({ pressed }) => [styles.valueButton, pressed && styles.pressed]}
               >
-                <Text numberOfLines={1} style={styles.valueButtonText}>
+                <VisualText numberOfLines={1} style={styles.valueButtonText}>
                   {settings.ttsVoiceName ?? str(lang, 'default')}
-                </Text>
+                </VisualText>
               </Pressable>
             </SettingRow>
           </>
@@ -473,10 +474,10 @@ export default function SettingsScreen({ navigation }: Props) {
           style={({ pressed }) => [styles.row, pressed && styles.pressed]}
         >
           <View style={styles.rowText}>
-            <Text style={[styles.rowTitle, { color: colors.red }]}>
+            <VisualText style={[styles.rowTitle, { color: colors.red }]}>
               {str(lang, 'settings_restore_title')}
-            </Text>
-            <Text style={styles.rowSubtitle}>{str(lang, 'settings_restore_sub')}</Text>
+            </VisualText>
+            <VisualText style={styles.rowSubtitle}>{str(lang, 'settings_restore_sub')}</VisualText>
           </View>
           <Icon name="restore" size={26} color={colors.red} />
         </Pressable>

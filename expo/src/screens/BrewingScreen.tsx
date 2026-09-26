@@ -12,6 +12,7 @@
 // They are deliberately independent: the brew clock may drift a few
 // milliseconds without affecting the beat the user is pouring to.
 import Icon from '../components/Icon';
+import VisualText from '../components/VisualText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -360,8 +361,8 @@ export default function BrewingScreen({ navigation, route }: Props) {
           accessibilityLabel={str(lang, 'brew_sec', [String(currentSecond), currentPhaseText])}
           style={styles.centered}
         >
-          <Text style={styles.timer}>{currentSecond}</Text>
-          <Text style={styles.phaseText}>{currentPhaseText}</Text>
+          <VisualText style={styles.timer}>{currentSecond}</VisualText>
+          <VisualText style={styles.phaseText}>{currentPhaseText}</VisualText>
         </View>
 
         <View style={{ height: 48 }} />
@@ -376,7 +377,7 @@ export default function BrewingScreen({ navigation, route }: Props) {
           }}
           style={({ pressed }) => [styles.cancelButton, pressed && styles.pressed]}
         >
-          <Text style={styles.cancelText}>{str(lang, 'cancel_brew_btn')}</Text>
+          <VisualText style={styles.cancelText}>{str(lang, 'cancel_brew_btn')}</VisualText>
         </Pressable>
       </View>
     );
@@ -404,17 +405,25 @@ export default function BrewingScreen({ navigation, route }: Props) {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.detailBody}>
-        <Text
+        {/*
+          The spoken form differs from the visible one (words instead of "g ☕"),
+          so the label sits on a wrapping View and the visible text is
+          VisualText. A <Text> carrying its own accessibilityLabel is read twice
+          by Jieshuo: once as the label, once as its content.
+        */}
+        <View
+          accessible
           accessibilityRole="header"
           accessibilityLabel={str(lang, 'recipe_label', [
             str(lang, recipe.name),
             dose,
             water,
           ])}
-          style={styles.recipeHeading}
         >
-          {`${str(lang, recipe.name)}\n${dose}g ☕ | ${water}ml 💧`}
-        </Text>
+          <VisualText style={styles.recipeHeading}>
+            {`${str(lang, recipe.name)}\n${dose}g ☕ | ${water}ml 💧`}
+          </VisualText>
+        </View>
 
         <View style={styles.infoBox}>
           {brewFacts.map((fact, index) => (
@@ -454,22 +463,22 @@ export default function BrewingScreen({ navigation, route }: Props) {
               accessibilityLabel={`${timeStr}: ${itemText}`}
               style={styles.phaseRow}
             >
-              <Text
+              <VisualText
                 style={[
                   styles.phaseClock,
                   { color: reached ? colors.blue : colors.textDisabled },
                 ]}
               >
                 {timeStr}
-              </Text>
-              <Text
+              </VisualText>
+              <VisualText
                 style={[
                   styles.phaseLabel,
                   { color: reached ? colors.text : colors.textDisabled },
                 ]}
               >
                 {itemText}
-              </Text>
+              </VisualText>
             </View>
           );
         })}
@@ -497,9 +506,9 @@ export default function BrewingScreen({ navigation, route }: Props) {
             size={28}
             color={colors.onPrimary}
           />
-          <Text style={styles.startText}>
+          <VisualText style={styles.startText}>
             {str(lang, isFinished ? 'finish_brew_btn' : 'start_brew_btn')}
-          </Text>
+          </VisualText>
         </Pressable>
       </View>
     </View>

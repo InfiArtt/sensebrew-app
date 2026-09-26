@@ -6,6 +6,7 @@
 // dropdown is a single control whose options a screen reader only reaches after
 // opening it.
 import Icon from './Icon';
+import VisualText from './VisualText';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { colors, fontSize } from '../theme';
@@ -81,19 +82,17 @@ export default function SelectSheet({
                   onPress={() => onSelect(option.value)}
                   style={({ pressed }) => [styles.rowMain, pressed && styles.pressed]}
                 >
-                  <Text
-                    importantForAccessibility="no-hide-descendants"
+                  <VisualText
                     style={styles.rowLabel}
                   >
                     {option.label}
-                  </Text>
+                  </VisualText>
                   {option.detail !== undefined && (
-                    <Text
-                      importantForAccessibility="no-hide-descendants"
+                    <VisualText
                       style={styles.rowDetail}
                     >
                       {option.detail}
-                    </Text>
+                    </VisualText>
                   )}
                 </Pressable>
 

@@ -5,6 +5,7 @@
 // two-clock arrangement as BrewingScreen — spoken cues off the wall clock, beats
 // off the click track's own audio clock.
 import Icon from '../components/Icon';
+import VisualText from '../components/VisualText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -253,14 +254,14 @@ export default function PourCalculatorScreen({ navigation }: Props) {
                 size={36}
                 color={isPlaying ? '#B71C1C' : colors.primaryDark}
               />
-              <Text
+              <VisualText
                 style={[
                   styles.playButtonText,
                   { color: isPlaying ? '#B71C1C' : colors.primaryDark },
                 ]}
               >
                 {buttonLabel}
-              </Text>
+              </VisualText>
             </Pressable>
           </>
         )}

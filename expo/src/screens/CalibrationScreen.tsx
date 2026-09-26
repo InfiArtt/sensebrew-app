@@ -5,6 +5,7 @@
 // swipe navigation. Here the numeric fields are plain React Native <TextInput>s,
 // which are real native EditTexts, so that whole workaround disappears.
 import Icon from '../components/Icon';
+import VisualText from '../components/VisualText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useLayoutEffect, useRef, useState } from 'react';
 import {
@@ -216,9 +217,9 @@ export default function CalibrationScreen({ navigation }: Props) {
             size={28}
             color={colors.text}
           />
-          <Text style={styles.simButtonText}>
+          <VisualText style={styles.simButtonText}>
             {playing ? str(lang, 'stop_metronome') : str(lang, 'calib_sim_btn')}
-          </Text>
+          </VisualText>
         </Pressable>
 
         <Text accessibilityRole="header" style={styles.question}>
@@ -230,7 +231,7 @@ export default function CalibrationScreen({ navigation }: Props) {
           onPress={() => setGrinderPickerOpen(true)}
           style={({ pressed }) => [styles.grinderCard, pressed && styles.pressed]}
         >
-          <Text style={styles.grinderName}>{selectedGrinder.name}</Text>
+          <VisualText style={styles.grinderName}>{selectedGrinder.name}</VisualText>
           <Icon name="arrow-drop-down" size={30} color={colors.text} />
         </Pressable>
 
@@ -292,7 +293,7 @@ export default function CalibrationScreen({ navigation }: Props) {
           onPress={() => void save()}
           style={({ pressed }) => [styles.saveButton, pressed && styles.pressed]}
         >
-          <Text style={styles.saveText}>{str(lang, 'save_calib_label')}</Text>
+          <VisualText style={styles.saveText}>{str(lang, 'save_calib_label')}</VisualText>
         </Pressable>
       </ScrollView>
 

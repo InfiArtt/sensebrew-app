@@ -7,6 +7,7 @@
 // this screen still works in Expo Go: `@react-native-voice/voice` would need a
 // custom native build, but recording a file and uploading it does not.
 import Icon from '../components/Icon';
+import VisualText from '../components/VisualText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RecordingPresets, useAudioRecorder } from 'expo-audio';
 import { useLayoutEffect, useRef, useState } from 'react';
@@ -204,7 +205,7 @@ export default function AiChatScreen({ navigation, route }: Props) {
                   onPress={applyDraft}
                   style={({ pressed }) => [styles.applyButton, pressed && styles.pressed]}
                 >
-                  <Text style={styles.applyButtonText}>{str(lang, 'ai_apply_btn')}</Text>
+                  <VisualText style={styles.applyButtonText}>{str(lang, 'ai_apply_btn')}</VisualText>
                 </Pressable>
               )}
             </View>
@@ -219,7 +220,7 @@ export default function AiChatScreen({ navigation, route }: Props) {
             style={styles.loading}
           >
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>{str(lang, 'ai_generating')}</Text>
+            <VisualText style={styles.loadingText}>{str(lang, 'ai_generating')}</VisualText>
           </View>
         )}
       </ScrollView>

@@ -11,6 +11,7 @@
 //     `Navigator.pop(context, result)` — and that removes the step where the
 //     method used to get reattached by the caller.
 import Icon from '../components/Icon';
+import VisualText from '../components/VisualText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useLayoutEffect, useState } from 'react';
@@ -297,7 +298,7 @@ export default function CustomRecipeScreen({ navigation, route }: Props) {
             style={({ pressed }) => [styles.aiButton, pressed && styles.pressed]}
           >
             <Icon name="chat-bubble-outline" size={22} color={colors.onPrimary} />
-            <Text style={styles.aiButtonText}>{str(lang, 'ai_chat_title')}</Text>
+            <VisualText style={styles.aiButtonText}>{str(lang, 'ai_chat_title')}</VisualText>
           </Pressable>
         </View>
 
@@ -324,7 +325,7 @@ export default function CustomRecipeScreen({ navigation, route }: Props) {
           onPress={() => setSheet({ kind: 'bean' })}
           style={({ pressed }) => [styles.selectButton, pressed && styles.pressed]}
         >
-          <Text importantForAccessibility="no-hide-descendants" style={styles.selectButtonText}>{beanLabel(lang, beanType)}</Text>
+          <VisualText style={styles.selectButtonText}>{beanLabel(lang, beanType)}</VisualText>
           <Icon name="arrow-drop-down" size={28} color={colors.text} />
         </Pressable>
 
@@ -348,7 +349,7 @@ export default function CustomRecipeScreen({ navigation, route }: Props) {
           onPress={() => setSheet({ kind: 'grind' })}
           style={({ pressed }) => [styles.selectButton, pressed && styles.pressed]}
         >
-          <Text importantForAccessibility="no-hide-descendants" style={styles.selectButtonText}>{str(lang, `custom_grind_${grindMicrons}`)}</Text>
+          <VisualText style={styles.selectButtonText}>{str(lang, `custom_grind_${grindMicrons}`)}</VisualText>
           <Icon name="arrow-drop-down" size={28} color={colors.text} />
         </Pressable>
 
@@ -400,7 +401,7 @@ export default function CustomRecipeScreen({ navigation, route }: Props) {
               onPress={() => setSheet({ kind: 'action', index })}
               style={({ pressed }) => [styles.selectButton, pressed && styles.pressed]}
             >
-              <Text importantForAccessibility="no-hide-descendants" style={styles.selectButtonText}>{actionLabel(lang, phase.action)}</Text>
+              <VisualText style={styles.selectButtonText}>{actionLabel(lang, phase.action)}</VisualText>
               <Icon name="arrow-drop-down" size={28} color={colors.text} />
             </Pressable>
 
@@ -424,7 +425,7 @@ export default function CustomRecipeScreen({ navigation, route }: Props) {
               style={({ pressed }) => [styles.deletePhase, pressed && styles.pressed]}
             >
               <Icon name="delete" size={26} color={colors.red} />
-              <Text style={styles.deletePhaseText}>{str(lang, 'delete_phase')}</Text>
+              <VisualText style={styles.deletePhaseText}>{str(lang, 'delete_phase')}</VisualText>
             </Pressable>
           </View>
         ))}
@@ -436,7 +437,7 @@ export default function CustomRecipeScreen({ navigation, route }: Props) {
           style={({ pressed }) => [styles.addPhaseButton, pressed && styles.pressed]}
         >
           <Icon name="add" size={24} color={colors.onPrimary} />
-          <Text style={styles.addPhaseText}>{str(lang, 'add_phase')}</Text>
+          <VisualText style={styles.addPhaseText}>{str(lang, 'add_phase')}</VisualText>
         </Pressable>
 
         <View style={styles.saveBlock}>
@@ -448,7 +449,7 @@ export default function CustomRecipeScreen({ navigation, route }: Props) {
                 onPress={() => void save(false)}
                 style={({ pressed }) => [styles.savePrimary, pressed && styles.pressed]}
               >
-                <Text style={styles.savePrimaryText}>{str(lang, 'save_overwrite')}</Text>
+                <VisualText style={styles.savePrimaryText}>{str(lang, 'save_overwrite')}</VisualText>
               </Pressable>
               <Pressable
                 accessibilityRole="button"
@@ -456,7 +457,7 @@ export default function CustomRecipeScreen({ navigation, route }: Props) {
                 onPress={() => void save(true)}
                 style={({ pressed }) => [styles.saveOutlined, pressed && styles.pressed]}
               >
-                <Text style={styles.saveOutlinedText}>{str(lang, 'save_as_new')}</Text>
+                <VisualText style={styles.saveOutlinedText}>{str(lang, 'save_as_new')}</VisualText>
               </Pressable>
             </>
           ) : (
@@ -466,7 +467,7 @@ export default function CustomRecipeScreen({ navigation, route }: Props) {
               onPress={() => void save(true)}
               style={({ pressed }) => [styles.savePrimary, pressed && styles.pressed]}
             >
-              <Text style={styles.savePrimaryText}>{str(lang, 'save_recipe')}</Text>
+              <VisualText style={styles.savePrimaryText}>{str(lang, 'save_recipe')}</VisualText>
             </Pressable>
           )}
         </View>
