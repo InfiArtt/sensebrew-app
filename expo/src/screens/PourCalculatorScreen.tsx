@@ -202,9 +202,10 @@ export default function PourCalculatorScreen({ navigation }: Props) {
                 style={styles.adjusterInput}
                 value={draft ?? String(targetMl)}
                 onChangeText={setDraft}
-                // Start empty so typing replaces the target instead of editing
-                // around it.
-                onFocus={() => setDraft('')}
+                // Selected on focus so typing replaces the target instead of
+                // editing around it. Not cleared: an emptied field is read out
+                // as its hint alone, without the number.
+                selectAllOnFocus
                 onBlur={() => {
                   const parsed = parseInt(draft ?? '', 10);
                   if (Number.isFinite(parsed)) {

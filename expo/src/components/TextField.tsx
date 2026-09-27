@@ -38,6 +38,12 @@ interface Props {
   revealed?: boolean;
   multiline?: boolean;
   editable?: boolean;
+  /**
+   * Select the whole value on focus, so typing replaces it. Use this instead of
+   * clearing the field on focus: an emptied field is announced by its hint
+   * alone, and the user never hears the value they came to change.
+   */
+  selectAllOnFocus?: boolean;
   returnKey?: 'done' | 'send';
   onSubmitEditing?: () => void;
   onFocus?: () => void;
@@ -57,6 +63,7 @@ export default function TextField({
   revealed = false,
   multiline = false,
   editable = true,
+  selectAllOnFocus = false,
   returnKey = 'done',
   onSubmitEditing,
   onFocus,
@@ -94,6 +101,7 @@ export default function TextField({
           secure={secret && !revealed}
           multiline={multiline}
           editable={editable}
+          selectAllOnFocus={selectAllOnFocus}
           returnKey={returnKey}
           textAlign={textAlign}
           fontSize={fontSize}
@@ -120,6 +128,7 @@ export default function TextField({
       secureTextEntry={secret && !revealed}
       multiline={multiline}
       editable={editable}
+      selectTextOnFocus={selectAllOnFocus}
       returnKeyType={returnKey}
       onSubmitEditing={onSubmitEditing}
       onFocus={onFocus}

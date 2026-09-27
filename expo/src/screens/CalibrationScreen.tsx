@@ -64,10 +64,14 @@ interface AdjusterProps {
  * accessibilityLabel or accessibilityLabelledBy.
  */
 function Adjuster({ lang, value, unit, question, minVal, step, onChange }: AdjusterProps) {
-  // Holds what the user is typing. Starting empty on focus means they overwrite
-  // the number rather than editing around it — QA asked for exactly that, since
-  // landing in a field that already reads "200" and typing "50" otherwise gives
-  // you 20050 or 50200 depending on where the cursor sat.
+  // Holds what the user is typing. The field selects its number on focus, so
+  // typing overwrites it rather than editing around it — QA asked for exactly
+  // that, since landing in a field that already reads "200" and typing "50"
+  // otherwise gives you 20050 or 50200 depending on where the cursor sat.
+  //
+  // It is selected, not cleared: clearing on focus meant the screen reader,
+  // which now gives the field focus as soon as it lands on it, announced only
+  // the question and never the number.
   const [draft, setDraft] = useState<string | null>(null);
 
   return (
@@ -91,7 +95,7 @@ function Adjuster({ lang, value, unit, question, minVal, step, onChange }: Adjus
         style={styles.adjusterInput}
         value={draft ?? String(value)}
         onChangeText={setDraft}
-        onFocus={() => setDraft('')}
+        selectAllOnFocus
         onBlur={() => {
           const parsed = parseInt(draft ?? '', 10);
           if (Number.isFinite(parsed) && parsed >= minVal) onChange(parsed);

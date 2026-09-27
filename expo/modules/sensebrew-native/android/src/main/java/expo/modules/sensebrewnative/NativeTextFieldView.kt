@@ -11,6 +11,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
+import android.view.accessibility.AccessibilityEvent
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
@@ -56,6 +57,12 @@ class NativeTextFieldView(context: Context, appContext: AppContext) : ExpoView(c
   var secure = false
   var multiline = false
   var editable = true
+
+  /**
+   * Select the whole value on focus, so typing replaces it while the value
+   * itself stays in the field and is still read out.
+   */
+  var selectAllOnFocus = false
 
   /** "done" or "send". */
   var returnKey = "done"
@@ -120,6 +127,7 @@ class NativeTextFieldView(context: Context, appContext: AppContext) : ExpoView(c
 
   fun applyProps() {
     editText.hint = hint
+    editText.setSelectAllOnFocus(selectAllOnFocus)
     editText.isEnabled = editable
     editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize.toFloat())
     parseColor(textColor)?.let { editText.setTextColor(it) }
@@ -140,6 +148,9 @@ class NativeTextFieldView(context: Context, appContext: AppContext) : ExpoView(c
       editText.setText(value)
       editText.setSelection(value.length)
       isSettingTextFromJs = false
+      // Tell the screen reader the field's text changed, so it never keeps
+      // announcing a copy of the field from before the change.
+      editText.sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
     }
   }
 

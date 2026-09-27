@@ -15,6 +15,7 @@ export type NativeTextFieldProps = ViewProps & {
   secure: boolean;
   multiline: boolean;
   editable: boolean;
+  selectAllOnFocus: boolean;
   returnKey: 'done' | 'send';
   textAlign: 'left' | 'center';
   fontSize: number;

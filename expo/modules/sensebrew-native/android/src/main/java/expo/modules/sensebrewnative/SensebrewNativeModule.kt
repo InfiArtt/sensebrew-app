@@ -20,6 +20,7 @@ class SensebrewNativeModule : Module() {
       Prop("secure", false) { view: NativeTextFieldView, secure: Boolean -> view.secure = secure }
       Prop("multiline", false) { view: NativeTextFieldView, multiline: Boolean -> view.multiline = multiline }
       Prop("editable", true) { view: NativeTextFieldView, editable: Boolean -> view.editable = editable }
+      Prop("selectAllOnFocus", false) { view: NativeTextFieldView, select: Boolean -> view.selectAllOnFocus = select }
       Prop("returnKey", "done") { view: NativeTextFieldView, returnKey: String -> view.returnKey = returnKey }
       Prop("textAlign", "left") { view: NativeTextFieldView, align: String -> view.textAlign = align }
       Prop("fontSize", 16.0) { view: NativeTextFieldView, size: Double -> view.fontSize = size }
