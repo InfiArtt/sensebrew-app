@@ -24,6 +24,7 @@ const CORE = [
   'src/core/aiService.ts',
   'src/core/audio/clickTrack.ts',
   'src/core/recipeMigrations.ts',
+  'src/core/recipeText.ts',
 ];
 
 // Phases in the Dart seed table, so the count follows lib/ rather than a number
@@ -291,6 +292,48 @@ function main() {
   eq('running it again changes nothing', [again.changed, again.recipes], [false, result.recipes]);
   const fresh = applyAudit202609(recipeDatabase, [], recipeDatabase);
   eq('a fresh install is already current', fresh.changed, false);
+
+  console.log('\n=== recipe shared as text ===');
+  const { recipeShareText, durationText } = require(path.join(outDir, 'recipeText.js'));
+  const timemore = grinderDatabase.find((g) => g.id === 'timemore_c2');
+  const devilId = recipeShareText(devil, 'id', timemore).split('\n');
+  const devilEn = recipeShareText(devil, 'en', null).split('\n');
+  console.log(recipeShareText(devil, 'id', timemore).replace(/^/gm, '        | '));
+
+  eq('first line names the recipe (id)', devilId[0], 'Resep: Kasuya Devil Recipe (Switch)');
+  eq('amounts line spells out the time (id)', devilId[2], 'Kopi 20 g, air 280 ml, waktu 3 menit');
+  eq('grind line gives the category and microns', devilId[3].endsWith('(700 mikron)'), true);
+  eq("sender's grinder setting included", devilId[4], `${timemore.name}: ${timemore.getSetting(700).trim()}`);
+  eq('without a grinder the line is left out', devilEn.some((l) => l.startsWith('Timemore')), false);
+  eq(
+    'steps are clock time, action, and ml for pours only',
+    devilId.slice(devilId.indexOf('Langkah:') + 1, devilId.indexOf('Langkah:') + 6),
+    [
+      `00:00 ${str('id', 'action_pour_circle')} 60 ml`,
+      `00:30 ${str('id', 'action_pour_circle')} 60 ml`,
+      `01:15 ${str('id', 'action_closeValve')}`,
+      `01:17 ${str('id', 'action_pour_circle')} 160 ml`,
+      `01:45 ${str('id', 'action_openValve')}`,
+    ]
+  );
+  eq('ends with the footer (en)', devilEn[devilEn.length - 1], 'Shared from SenseBrew');
+  eq('english text is english', devilEn[0], 'Recipe: Kasuya Devil Recipe (Switch)');
+  eq('no emoji anywhere', /[\u{1F300}-\u{1FAFF}☀-➿]/u.test(devilId.join('\n')), false);
+  eq(
+    'every built-in recipe shares without leftover keys or placeholders',
+    recipeDatabase
+      .flatMap((r) => ['id', 'en'].map((lang) => [r.name, lang, recipeShareText(r, lang, timemore)]))
+      .filter(([, , text]) => /\{\d\}|share_|desc_key_|extra_key_|action_/.test(text))
+      .map(([name, lang]) => `${name} (${lang})`),
+    []
+  );
+  eq('durations read as words (en)', [60, 90, 255, 45].map((s) => durationText('en', s)), [
+    '1 minute',
+    '1 minute 30 seconds',
+    '4 minutes 15 seconds',
+    '45 seconds',
+  ]);
+  eq('durations read as words (id)', durationText('id', 600), '10 menit');
 
   console.log('');
   console.log('=== bilingual payloads from the assistant ===');

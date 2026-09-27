@@ -2,9 +2,14 @@
 //
 // This is the screen that drove the Flutter build to a custom Kotlin EditText
 // (NativeTextFieldView.kt) because Flutter's own field fought with TalkBack's
-// swipe navigation. Here the numeric fields are plain React Native <TextInput>s,
-// which are real native EditTexts, so that whole workaround disappears.
+// swipe navigation. The numeric fields here are components/TextField, which is
+// that same plain EditText again.
+//
+// Each question is shown above its control but read only once, by the control:
+// the heading is hidden from the screen reader, since the field's hint (or the
+// grinder button's label) already says it.
 import Icon from '../components/Icon';
+import TextField from '../components/TextField';
 import VisualText from '../components/VisualText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useLayoutEffect, useRef, useState } from 'react';
@@ -15,7 +20,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   ToastAndroid,
   View,
 } from 'react-native';
@@ -79,10 +83,11 @@ function Adjuster({ lang, value, unit, question, minVal, step, onChange }: Adjus
         <Icon name="remove-circle" size={48} color={colors.red} />
       </Pressable>
 
-      <TextInput
-        placeholder={question}
-        placeholderTextColor={colors.textDisabled}
+      <TextField
+        hint={question}
         keyboardType="number-pad"
+        fontSize={fontSize.title}
+        textAlign="center"
         style={styles.adjusterInput}
         value={draft ?? String(value)}
         onChangeText={setDraft}
@@ -222,7 +227,12 @@ export default function CalibrationScreen({ navigation }: Props) {
           </VisualText>
         </Pressable>
 
-        <Text accessibilityRole="header" style={styles.question}>
+        {/* Visual only: the control below says the same thing. */}
+        <Text
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.question}
+        >
           {str(lang, 'calib_grinder_select')}
         </Text>
         <Pressable
@@ -235,7 +245,12 @@ export default function CalibrationScreen({ navigation }: Props) {
           <Icon name="arrow-drop-down" size={30} color={colors.text} />
         </Pressable>
 
-        <Text accessibilityRole="header" style={styles.question}>
+        {/* Visual only: the control below says the same thing. */}
+        <Text
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.question}
+        >
           {str(lang, 'calib_spoon_q')}
         </Text>
         <Adjuster
@@ -248,7 +263,12 @@ export default function CalibrationScreen({ navigation }: Props) {
           onChange={(v) => setSpoonCapacity(v)}
         />
 
-        <Text accessibilityRole="header" style={styles.question}>
+        {/* Visual only: the control below says the same thing. */}
+        <Text
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.question}
+        >
           {str(lang, 'calib_q1')}
         </Text>
         <Adjuster
@@ -261,7 +281,12 @@ export default function CalibrationScreen({ navigation }: Props) {
           onChange={setTargetVolume}
         />
 
-        <Text accessibilityRole="header" style={styles.question}>
+        {/* Visual only: the control below says the same thing. */}
+        <Text
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.question}
+        >
           {str(lang, 'calib_q2')}
         </Text>
         <Adjuster
@@ -274,7 +299,12 @@ export default function CalibrationScreen({ navigation }: Props) {
           onChange={setTotalSeconds}
         />
 
-        <Text accessibilityRole="header" style={styles.question}>
+        {/* Visual only: the control below says the same thing. */}
+        <Text
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.question}
+        >
           {str(lang, 'calib_q3')}
         </Text>
         <Adjuster
@@ -391,14 +421,10 @@ const styles = StyleSheet.create({
   },
   adjusterInput: {
     flex: 1,
-    fontSize: fontSize.title,
-    textAlign: 'center',
-    color: colors.text,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.divider,
     borderRadius: 4,
-    paddingVertical: 10,
   },
   adjusterUnit: {
     fontSize: fontSize.heading,

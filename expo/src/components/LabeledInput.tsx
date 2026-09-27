@@ -1,25 +1,22 @@
 // A labelled text field.
 //
-// This replaces NativeTextField, the Kotlin PlatformView the Flutter build needed
-// because TalkBack's swipe navigation skipped Flutter's own text fields. React
-// Native's <TextInput> *is* a native EditText, so the job here is only to attach
-// a label without breaking it. Two requirements, both from QA:
+// Two requirements, both from QA:
 //
 //   1. One swipe stop per field. The label belongs to the field, so five fields
 //      are five swipes, not ten.
 //   2. The field stays a plain EditText, so the screen reader offers its editing
 //      actions on it (select all, paste, move to start/end...) the way it does on
-//      WhatsApp's message box.
+//      WhatsApp's message box. That is what components/TextField provides.
 //
-// The label therefore goes in the field's *hint* (`placeholder` on Android), and
-// the visible caption is hidden from the screen reader. That is exactly what the
-// Flutter build's NativeTextFieldView.kt did — "Only use hint for EditText to
-// avoid confusing TalkBack with double descriptions" — with the caption wrapped
-// in ExcludeSemantics on the Dart side.
+// The label therefore goes in the field's *hint*, and the visible caption is
+// hidden from the screen reader. That is exactly what the Flutter build's
+// NativeTextFieldView.kt did — "Only use hint for EditText to avoid confusing
+// TalkBack with double descriptions" — with the caption wrapped in
+// ExcludeSemantics on the Dart side.
 //
 // Two approaches that were tried here first and must not come back:
 //
-//   * `accessibilityLabel` on the TextInput. On Android that becomes the
+//   * `accessibilityLabel` on the field. On Android that becomes the
 //     EditText's contentDescription, and a contentDescription makes the screen
 //     reader read that string instead of treating the view as editable text: the
 //     editing actions disappear (breaks requirement 2).
@@ -27,24 +24,18 @@
 //     labelFor links the caption to the field but does not merge them, so the
 //     caption stays a stop of its own (breaks requirement 1).
 import { useState } from 'react';
-import {
-  KeyboardTypeOptions,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View, type KeyboardTypeOptions } from 'react-native';
 
 import Icon from './Icon';
+import TextField from './TextField';
 
-import { colors, fontSize } from '../theme';
+import { colors } from '../theme';
 
 interface Props {
   label: string;
   value: string;
   onChangeText: (value: string) => void;
-  keyboardType?: KeyboardTypeOptions;
+  keyboardType?: Extract<KeyboardTypeOptions, 'default' | 'number-pad' | 'decimal-pad'>;
   /** Renders as a password field with a reveal toggle. */
   secret?: boolean;
   /** Name for the reveal toggle while the value is hidden ("show API key"). */
@@ -82,18 +73,16 @@ export default function LabeledInput({
       </Text>
 
       <View style={styles.fieldRow}>
-        <TextInput
-          // No accessibilityLabel and no accessibilityLabelledBy — see the note at
-          // the top of this file. The hint is the field's name.
+        <TextField
+          hint={placeholder ?? label}
           value={value}
           onChangeText={onChangeText}
           keyboardType={keyboardType}
-          secureTextEntry={secret && !revealed}
+          secret={secret}
+          revealed={revealed}
           multiline={multiline}
           onSubmitEditing={onSubmitEditing}
-          placeholder={placeholder ?? label}
-          placeholderTextColor={colors.textDisabled}
-          style={[styles.input, multiline && styles.inputMultiline]}
+          style={styles.input}
         />
 
         {secret && (
@@ -135,19 +124,10 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: fontSize.body,
-    color: colors.text,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.divider,
     borderRadius: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    minHeight: 52,
-  },
-  inputMultiline: {
-    minHeight: 96,
-    textAlignVertical: 'top',
   },
   revealButton: {
     width: 48,

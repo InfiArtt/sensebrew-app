@@ -9,6 +9,12 @@
 //     plain <Text>. Use components/VisualText for the visible text instead.
 //   * A <Text> must not set accessibilityLabel. Its content is its name; if the
 //     spoken form has to differ, make it a labelled <View> around VisualText.
+//   * A readable caption must not repeat the name of the control right after it.
+//     QA heard "Berapa ml...?" from the heading and again from the field's
+//     hint. Hide the caption from the screen reader instead; the control says it.
+//   * Screens use components/TextField, never <TextInput> directly: React
+//     Native's EditText cannot take input focus from a screen reader, so the
+//     cursor actions ("go to start", "go to end") did nothing on it.
 //
 // Run: npm run check (this runs after the brewing checks)
 
@@ -100,9 +106,25 @@ function audit() {
     }
 
     for (const start of openings(text, 'Text')) {
-      const tag = text.slice(start, tagEnd(text, start) + 1);
+      const end = tagEnd(text, start);
+      const tag = text.slice(start, end + 1);
       if (/\baccessibilityLabel=/.test(tag)) {
         problems.push(`${rel}:${lineOf(text, start)}  <Text> with its own accessibilityLabel`);
+      }
+
+      const repeated = repeatedCaption(text, start, end, tag);
+      if (repeated) {
+        problems.push(
+          `${rel}:${lineOf(text, start)}  caption '${repeated.key}' is read, then again by the ` +
+            `<${repeated.control}> after it — hide the caption from the screen reader`
+        );
+      }
+    }
+
+    if (!rel.endsWith(path.join('components', 'TextField.tsx'))) {
+      for (const start of openings(text, 'TextInput')) {
+        if (inComment(text, start)) continue;
+        problems.push(`${rel}:${lineOf(text, start)}  <TextInput> — use components/TextField`);
       }
     }
   }
@@ -110,13 +132,53 @@ function audit() {
   return problems;
 }
 
+/**
+ * For a readable <Text>{str(lang, 'key')}</Text>, the next control if it is
+ * named with the same key: { key, control }. Otherwise null.
+ */
+function repeatedCaption(text, start, end, tag) {
+  if (tag.endsWith('/>') || /accessibilityElementsHidden|no-hide-descendants/.test(tag)) return null;
+
+  const close = elementEnd(text, 'Text', start);
+  const body = text.slice(end + 1, close - '</Text>'.length);
+  const caption = /^\s*\{str\(lang, '([^']+)'\)\}\s*$/.exec(body);
+  if (!caption) return null;
+  const key = caption[1];
+
+  // The next element, skipping whitespace and {/* comments */}, and every named
+  // control in it: the element itself, or those inside a layout wrapper such as
+  // the minus / field / plus row, where the field repeated the heading.
+  const rest = text.slice(close).replace(/^(\s|\{\/\*[\s\S]*?\*\/\})*/, '');
+  const next = /^<([A-Z][A-Za-z0-9_]*)/.exec(rest);
+  if (!next) return null;
+  const nextEnd = elementEnd(rest, next[1], 0);
+  const element = nextEnd === -1 ? rest.slice(0, tagEnd(rest, 0) + 1) : rest.slice(0, nextEnd);
+
+  const tags = /<([A-Z][A-Za-z0-9_]*)/g;
+  let m;
+  while ((m = tags.exec(element))) {
+    const controlTag = element.slice(m.index, tagEnd(element, m.index) + 1);
+    const isNamed = /\b(accessibilityLabel|hint|label|question|placeholder)=/.test(controlTag);
+    if (isNamed && controlTag.includes(`'${key}'`)) return { key, control: m[1] };
+  }
+  return null;
+}
+
+/** Whether the offset sits on a // or /* comment line. */
+function inComment(text, offset) {
+  const lineStart = text.lastIndexOf('\n', offset) + 1;
+  return /^\s*(\/\/|\/?\*)/.test(text.slice(lineStart, offset));
+}
+
 const problems = audit();
 console.log('');
 console.log('=== screen reader: nothing read twice ===');
 if (problems.length === 0) {
   console.log('PASS  no labelled control exposes its visible text');
+  console.log('PASS  no caption repeats the control after it');
+  console.log('PASS  every text field is components/TextField');
 } else {
   for (const p of problems) console.log(`FAIL  ${p}`);
-  console.log(`\n${problems.length} place(s) Jieshuo would read twice`);
+  console.log(`\n${problems.length} screen-reader problem(s)`);
   process.exit(1);
 }

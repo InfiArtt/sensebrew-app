@@ -1,0 +1,25 @@
+diff --git a/node_modules/expo-audio/android/src/main/java/expo/modules/audio/AudioModule.kt b/node_modules/expo-audio/android/src/main/java/expo/modules/audio/AudioModule.kt
+index 992239b..5deba04 100644
+--- a/node_modules/expo-audio/android/src/main/java/expo/modules/audio/AudioModule.kt
++++ b/node_modules/expo-audio/android/src/main/java/expo/modules/audio/AudioModule.kt
+@@ -914,10 +914,19 @@ class AudioModule : Module() {
+     }
+   }
+ 
++  // SenseBrew patch: every setAudioModeAsync call used to switch the phone's
++  // speakerphone on, which is device-wide. With a Bluetooth headset connected,
++  // that moved the screen reader's own speech (TalkBack, Jieshuo) to the phone
++  // speaker each time the app opened, until Android moved it back. Leave the
++  // routing alone unless the earpiece is actually requested or released.
++  private var isRoutedThroughEarpiece = false
++
+   @Suppress("DEPRECATION")
+   private fun updatePlaySoundThroughEarpiece(playThroughEarpiece: Boolean) {
++    if (playThroughEarpiece == isRoutedThroughEarpiece) return
++    isRoutedThroughEarpiece = playThroughEarpiece
+     audioManager.mode = if (playThroughEarpiece) AudioManager.MODE_IN_COMMUNICATION else AudioManager.MODE_NORMAL
+-    audioManager.setSpeakerphoneOn(!playThroughEarpiece)
++    audioManager.setSpeakerphoneOn(false)
+   }
+ 
+   private fun retrieveStreamType(uri: Uri): Int = Util.inferContentType(uri)

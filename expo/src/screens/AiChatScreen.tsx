@@ -7,6 +7,7 @@
 // this screen still works in Expo Go: `@react-native-voice/voice` would need a
 // custom native build, but recording a file and uploading it does not.
 import Icon from '../components/Icon';
+import TextField from '../components/TextField';
 import VisualText from '../components/VisualText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RecordingPresets, useAudioRecorder } from 'expo-audio';
@@ -18,7 +19,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 
@@ -226,15 +226,12 @@ export default function AiChatScreen({ navigation, route }: Props) {
       </ScrollView>
 
       <View style={styles.composer}>
-        <TextInput
-          // Named by its hint alone. An accessibilityLabel here would become the
-          // EditText's contentDescription and cost the screen reader's editing
-          // actions on the one field people type the most into — see
-          // components/LabeledInput.tsx.
-          placeholder={str(lang, 'ai_hint')}
-          placeholderTextColor={colors.textDisabled}
+        <TextField
+          // Named by its hint alone; see components/TextField.tsx.
+          hint={str(lang, 'ai_hint')}
           value={input}
           onChangeText={setInput}
+          returnKey="send"
           onSubmitEditing={() => void sendText()}
           editable={!isLoading}
           style={styles.composerInput}
@@ -349,14 +346,10 @@ const styles = StyleSheet.create({
   },
   composerInput: {
     flex: 1,
-    minHeight: 52,
-    fontSize: fontSize.body,
-    color: colors.text,
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.divider,
     borderRadius: 4,
-    paddingHorizontal: 12,
   },
   sendButton: {
     width: 52,

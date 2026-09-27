@@ -37,6 +37,7 @@ import {
   makeRecipe,
   newRecipeId,
 } from '../core/recipe';
+import { actionLabel, beanLabel, isPourAction } from '../core/recipeText';
 import { useAiDraft } from '../core/stores/aiDraftStore';
 import { useRecipes } from '../core/stores/recipeStore';
 import { useSettings } from '../core/stores/settingsStore';
@@ -60,35 +61,6 @@ type Sheet = { kind: 'bean' } | { kind: 'grind' } | { kind: 'action'; index: num
 function notify(message: string) {
   AccessibilityInfo.announceForAccessibility(message);
   if (Platform.OS === 'android') ToastAndroid.show(message, ToastAndroid.SHORT);
-}
-
-function isPourAction(action: PhaseAction): boolean {
-  return action === 'pourCircle' || action === 'pourCenter';
-}
-
-/** The Dart table spells the two pour actions with underscores. */
-const ACTION_STRING_KEY: Record<PhaseAction, string> = {
-  pourCircle: 'action_pour_circle',
-  pourCenter: 'action_pour_center',
-  wait: 'action_wait',
-  stir: 'action_stir',
-  swirl: 'action_swirl',
-  cap: 'action_cap',
-  flip: 'action_flip',
-  press: 'action_press',
-  openValve: 'action_openValve',
-  closeValve: 'action_closeValve',
-};
-
-function actionLabel(lang: string, action: PhaseAction): string {
-  return str(lang, ACTION_STRING_KEY[action]);
-}
-
-function beanLabel(lang: string, bean: string): string {
-  if (bean === 'Blend') return str(lang, 'custom_bean_blend');
-  if (bean === 'Bebas') return str(lang, 'custom_bean_bebas');
-  if (bean === 'Custom') return str(lang, 'custom_bean_custom');
-  return bean;
 }
 
 /** Snaps an arbitrary micron value onto the six offered grind steps. */

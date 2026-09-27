@@ -49,11 +49,23 @@ interface RowProps {
   children: React.ReactNode;
 }
 
+/**
+ * A titled row around one control. The control must name itself with the title
+ * ("AI Provider. Gemini"), so the title on screen is hidden from the screen
+ * reader: read here as well, QA heard it twice. The subtitle is not repeated
+ * anywhere and stays readable.
+ */
 function SettingRow({ title, subtitle, children }: RowProps) {
   return (
     <View style={styles.row}>
       <View style={styles.rowText}>
-        <Text style={styles.rowTitle}>{title}</Text>
+        <Text
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.rowTitle}
+        >
+          {title}
+        </Text>
         {subtitle !== undefined && <Text style={styles.rowSubtitle}>{subtitle}</Text>}
       </View>
       {children}
@@ -130,7 +142,12 @@ function SliderRow({
 }: SliderRowProps) {
   return (
     <View style={styles.sliderBlock}>
-      <Text nativeID={`slider-${title}`} style={styles.rowTitle}>
+      {/* Visual only: the slider itself announces its title and value. */}
+      <Text
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={styles.rowTitle}
+      >
         {`${title}: ${format(value)}`}
       </Text>
       <Slider

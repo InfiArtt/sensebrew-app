@@ -8,6 +8,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { str } from '../core/appStrings';
 import { applySpeechSettings } from '../core/audio/speech';
 import type { BrewMethod } from '../core/recipe';
+import { METHOD_NAMES } from '../core/recipeText';
 import { useCalibration } from '../core/stores/calibrationStore';
 import { useSettings } from '../core/stores/settingsStore';
 import type { RootStackParamList } from '../navigation';
@@ -23,13 +24,18 @@ type MethodEntry = {
 };
 
 const METHODS: MethodEntry[] = [
-  { method: 'v60', name: 'V60 / Pour-over', descKey: 'method_v60_desc', icon: 'filter-alt' },
-  { method: 'frenchPress', name: 'French Press', descKey: 'method_fp_desc', icon: 'coffee' },
-  { method: 'aeropress', name: 'Aeropress', descKey: 'method_ap_desc', icon: 'local-cafe' },
-  { method: 'vietnamDrip', name: 'Vietnam Drip', descKey: 'method_vd_desc', icon: 'coffee-maker' },
+  { method: 'v60', name: METHOD_NAMES.v60, descKey: 'method_v60_desc', icon: 'filter-alt' },
+  { method: 'frenchPress', name: METHOD_NAMES.frenchPress, descKey: 'method_fp_desc', icon: 'coffee' },
+  { method: 'aeropress', name: METHOD_NAMES.aeropress, descKey: 'method_ap_desc', icon: 'local-cafe' },
+  {
+    method: 'vietnamDrip',
+    name: METHOD_NAMES.vietnamDrip,
+    descKey: 'method_vd_desc',
+    icon: 'coffee-maker',
+  },
   {
     method: 'cupping',
-    name: 'SCA Cupping Protocol',
+    name: METHOD_NAMES.cupping,
     descKey: 'method_cup_desc',
     icon: 'emoji-food-beverage',
   },

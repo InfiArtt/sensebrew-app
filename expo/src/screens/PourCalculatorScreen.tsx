@@ -5,11 +5,12 @@
 // two-clock arrangement as BrewingScreen — spoken cues off the wall clock, beats
 // off the click track's own audio clock.
 import Icon from '../components/Icon';
+import TextField from '../components/TextField';
 import VisualText from '../components/VisualText';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { str } from '../core/appStrings';
 import { startMetronome, stopMetronome } from '../core/audio/metronome';
@@ -166,7 +167,12 @@ export default function PourCalculatorScreen({ navigation }: Props) {
           </View>
         ) : (
           <>
-            <Text accessibilityRole="header" style={styles.question}>
+            {/* Visual only: the field's hint below says the same thing. */}
+            <Text
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              style={styles.question}
+            >
               {str(lang, 'pour_calc_target')}
             </Text>
 
@@ -186,13 +192,13 @@ export default function PourCalculatorScreen({ navigation }: Props) {
                 <Icon name="remove-circle-outline" size={48} color={colors.primary} />
               </Pressable>
 
-              <TextInput
-                // Named by its hint, not accessibilityLabel or labelFor: see
-                // components/LabeledInput.tsx.
-                placeholder={str(lang, 'pour_calc_target')}
-                placeholderTextColor={colors.textDisabled}
+              <TextField
+                // Named by its hint; see components/TextField.tsx.
+                hint={str(lang, 'pour_calc_target')}
                 keyboardType="number-pad"
                 editable={!isPlaying}
+                fontSize={fontSize.title}
+                textAlign="center"
                 style={styles.adjusterInput}
                 value={draft ?? String(targetMl)}
                 onChangeText={setDraft}
@@ -315,14 +321,10 @@ const styles = StyleSheet.create({
   },
   adjusterInput: {
     width: 120,
-    fontSize: fontSize.title,
-    textAlign: 'center',
-    color: colors.text,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.divider,
     borderRadius: 4,
-    paddingVertical: 10,
   },
   adjusterUnit: {
     fontSize: fontSize.heading,

@@ -10,6 +10,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   ToastAndroid,
@@ -17,7 +18,9 @@ import {
 } from 'react-native';
 
 import { str } from '../core/appStrings';
+import { grinderDatabase } from '../core/grinderDatabase';
 import { Recipe, trimNumber } from '../core/recipe';
+import { recipeShareText } from '../core/recipeText';
 import { useCalibration } from '../core/stores/calibrationStore';
 import { useRecipes } from '../core/stores/recipeStore';
 import { useSettings } from '../core/stores/settingsStore';
@@ -68,6 +71,7 @@ export default function MethodRecipeScreen({ navigation, route }: Props) {
   const { method, methodName } = route.params;
   const lang = useSettings((s) => s.appLanguage);
   const isCalibrated = useCalibration((s) => s.isCalibrated);
+  const grinderId = useCalibration((s) => s.grinderId);
   const recipes = useRecipes((s) => s.recipes);
   const getRecipesByMethod = useRecipes((s) => s.getRecipesByMethod);
   const toggleFavorite = useRecipes((s) => s.toggleFavorite);
@@ -92,6 +96,25 @@ export default function MethodRecipeScreen({ navigation, route }: Props) {
       return;
     }
     navigation.navigate('Brewing', { recipe });
+  };
+
+  // Plain text through Android's own share sheet, so it goes to any app the
+  // user has (WhatsApp, Telegram, email...). See core/recipeText.ts for why it
+  // is text and how it is worded.
+  const shareRecipe = async (recipe: Recipe) => {
+    setSheetRecipe(null);
+    // The grinder is only the user's own once they have picked it in calibration.
+    const grinder = isCalibrated
+      ? (grinderDatabase.find((g) => g.id === grinderId) ?? null)
+      : null;
+    try {
+      await Share.share({
+        title: str(lang, recipe.name),
+        message: recipeShareText(recipe, lang, grinder),
+      });
+    } catch {
+      notify(str(lang, 'share_failed'));
+    }
   };
 
   const confirmDelete = (recipe: Recipe) => {
@@ -151,6 +174,13 @@ export default function MethodRecipeScreen({ navigation, route }: Props) {
                   dose,
                   water,
                 ])}
+                // Sharing straight from the list, through the screen reader's
+                // actions menu, without adding a swipe stop to every row. The
+                // same action is also a button in the recipe's sheet.
+                accessibilityActions={[{ name: 'share', label: str(lang, 'share_recipe_btn') }]}
+                onAccessibilityAction={(event) => {
+                  if (event.nativeEvent.actionName === 'share') void shareRecipe(recipe);
+                }}
                 onPress={() => setSheetRecipe(recipe)}
                 style={({ pressed }) => [styles.recipeMain, pressed && styles.pressed]}
               >
@@ -231,6 +261,18 @@ export default function MethodRecipeScreen({ navigation, route }: Props) {
             >
               <Icon name="edit" size={24} color={colors.primary} />
               <VisualText style={styles.sheetOutlinedText}>{str(lang, 'edit_btn')}</VisualText>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={str(lang, 'share_recipe_btn')}
+              onPress={() => void shareRecipe(sheetRecipe)}
+              style={({ pressed }) => [styles.sheetOutlined, pressed && styles.pressed]}
+            >
+              <Icon name="share" size={24} color={colors.primary} />
+              <VisualText style={styles.sheetOutlinedText}>
+                {str(lang, 'share_recipe_btn')}
+              </VisualText>
             </Pressable>
 
             <Pressable
