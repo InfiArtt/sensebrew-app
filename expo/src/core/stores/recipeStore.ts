@@ -12,12 +12,13 @@ import {
   recipeDatabase,
   recipeFromJson,
 } from '../recipe';
+import { applyAudit202609 } from '../recipeMigrations';
 import * as storage from '../storage';
 
 const RECIPES_KEY = 'saved_recipes';
 const DELETED_DEFAULTS_KEY = 'deleted_default_recipes';
 const DB_VERSION_KEY = 'recipe_db_version';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 interface RecipeState {
   isLoaded: boolean;
@@ -43,16 +44,18 @@ export const useRecipes = create<RecipeState>((set, get) => ({
   deletedDefaults: [],
 
   load: async () => {
-    const [raw, deletedDefaults] = await Promise.all([
+    const [raw, storedDeleted] = await Promise.all([
       storage.getStringOrNull(RECIPES_KEY),
       storage.getStringList(DELETED_DEFAULTS_KEY),
     ]);
+    let deletedDefaults = storedDeleted;
 
     if (!raw) {
-      // First launch: copy the bundled database.
+      // First launch: copy the bundled database, which needs no migration.
       const recipes = [...recipeDatabase];
       set({ recipes, deletedDefaults, isLoaded: true });
       await persist(recipes);
+      await storage.setNumber(DB_VERSION_KEY, DB_VERSION);
       return;
     }
 
@@ -98,10 +101,11 @@ export const useRecipes = create<RecipeState>((set, get) => ({
       return next;
     });
 
+    const dbVersion = await storage.getNumber(DB_VERSION_KEY, 0);
+
     // Migration 1: built-in descriptions became translation keys, so replace
     // whatever English text an older build stored.
-    const dbVersion = await storage.getNumber(DB_VERSION_KEY, 0);
-    if (dbVersion < DB_VERSION) {
+    if (dbVersion < 1) {
       recipes = recipes.map((recipe) => {
         if (!recipe.isBuiltIn) return recipe;
         const match = recipeDatabase.find((d) => d.name === recipe.name);
@@ -109,8 +113,20 @@ export const useRecipes = create<RecipeState>((set, get) => ({
         changed = true;
         return { ...recipe, description: match.description };
       });
-      await storage.setNumber(DB_VERSION_KEY, DB_VERSION);
     }
+
+    // Migration 2: the data audit corrected and renamed some built-ins.
+    if (dbVersion < 2) {
+      const audit = applyAudit202609(recipes, deletedDefaults, recipeDatabase);
+      recipes = audit.recipes;
+      if (audit.changed) changed = true;
+      if (audit.deletedDefaults.join('\n') !== deletedDefaults.join('\n')) {
+        deletedDefaults = audit.deletedDefaults;
+        await storage.setStringList(DELETED_DEFAULTS_KEY, deletedDefaults);
+      }
+    }
+
+    if (dbVersion < DB_VERSION) await storage.setNumber(DB_VERSION_KEY, DB_VERSION);
 
     // Merge in recipes added by an app update, unless the user deleted them.
     recipeDatabase.forEach((defaultRecipe) => {

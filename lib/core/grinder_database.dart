@@ -125,12 +125,12 @@ final List<GrinderModel> grinderDatabase = [
     name: 'Hario Skerton Pro',
     isManual: true,
     getSetting: (microns) {
-      if (microns <= 400) return '2 - 3 ';
-      if (microns <= 600) return '4 - 6 ';
-      if (microns <= 800) return '7 - 9 ';
-      if (microns <= 1000) return '10 - 12 ';
-      if (microns <= 1200) return '13 - 15 ';
-      return '16 - 18 ';
+      if (microns <= 400) return '1 (Not Espresso)';
+      if (microns <= 600) return '2 - 3';
+      if (microns <= 800) return '3 - 5';
+      if (microns <= 1000) return '5 - 6';
+      if (microns <= 1200) return '6 - 8';
+      return '8 - 9';
     },
   ),
   GrinderModel(
@@ -206,11 +206,11 @@ final List<GrinderModel> grinderDatabase = [
     isManual: false,
     getSetting: (microns) {
       if (microns <= 400) return '10 - 20 angka';
-      if (microns <= 600) return '25 - 40 angka';
-      if (microns <= 800) return '45 - 65 angka';
-      if (microns <= 1000) return '70 - 85 angka';
-      if (microns <= 1200) return '90 - 100 angka';
-      return '100+ angka';
+      if (microns <= 600) return '20 - 35 angka';
+      if (microns <= 800) return '35 - 53 angka';
+      if (microns <= 1000) return '53 - 70 angka';
+      if (microns <= 1200) return '70 - 85 angka';
+      return '85 - 90 angka (maks)';
     },
   ),
   GrinderModel(

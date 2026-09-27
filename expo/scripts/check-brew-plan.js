@@ -23,7 +23,16 @@ const CORE = [
   'src/core/grinderDatabase.ts',
   'src/core/aiService.ts',
   'src/core/audio/clickTrack.ts',
+  'src/core/recipeMigrations.ts',
 ];
+
+// Phases in the Dart seed table, so the count follows lib/ rather than a number
+// someone has to remember to bump.
+function countDartPhases() {
+  const dart = fs.readFileSync(path.join(ROOT, '..', 'lib', 'core', 'recipe.dart'), 'utf8');
+  const table = dart.slice(dart.indexOf('List<Recipe> recipeDatabase = ['));
+  return (table.match(/\bRecipePhase\(/g) || []).length;
+}
 
 // SHA-256 of assets/audio/click_60bpm.wav as it shipped and was verified in the
 // 39 MB build, before the track moved to on-device generation. The generator
@@ -81,7 +90,7 @@ function main() {
 
   console.log('\n=== database ===');
   eq('recipe count', recipeDatabase.length, 58);
-  eq('total phases', recipeDatabase.reduce((n, r) => n + r.phases.length, 0), 230);
+  eq('total phases match lib/core/recipe.dart', recipeDatabase.reduce((n, r) => n + r.phases.length, 0), countDartPhases());
 
   const hoffmann = recipeDatabase.find((r) => r.name === 'James Hoffmann Ultimate V60');
   eq('hoffmann dose/water', [hoffmann.coffeeGrams, hoffmann.totalWaterMl], [15, 250]);
@@ -101,7 +110,7 @@ function main() {
 
   // This name contains parentheses, which a regex-based Dart-to-TS conversion
   // would have unbalanced.
-  const phin = recipeDatabase.find((r) => r.name === 'Phin Coconut (Bac Xiu)');
+  const phin = recipeDatabase.find((r) => r.name === 'Coconut Phin (inspired by Bac Xiu)');
   eq('name with parentheses survived conversion', phin !== undefined, true);
   eq('phin beanType override', phin.beanType, 'Robusta');
   eq('phin extraIngredients key', phin.extraIngredients, 'extra_key_15');
@@ -177,6 +186,111 @@ function main() {
   eq('timemore at 800 microns', grinderDatabase.find((g) => g.id === 'timemore_c2').getSetting(800), '15 - 18 ');
   eq('ek43 at 1400 microns', grinderDatabase.find((g) => g.id === 'mahlkonig_ek43').getSetting(1400), '15.0 - 16.0');
   eq('grind category is translated, not a raw key', getGrindCategoryName(800, 'id') !== 'custom_grind_800', true);
+
+  // Corrections from the September 2026 data audit, checked against the
+  // published recipes, so a later regeneration cannot quietly undo them.
+  console.log('\n=== data audit corrections ===');
+  const byName = (name) => recipeDatabase.find((r) => r.name === name);
+  const pours = (r) => r.phases.filter((p) => p.pourAmountMl > 0).map((p) => p.pourAmountMl);
+  const actions = (r) => r.phases.map((p) => p.action);
+  const pourSumMatches = (r) => pours(r).reduce((a, b) => a + b, 0) === r.totalWaterMl;
+
+  const devil = byName('Kasuya Devil Recipe (Switch)');
+  eq('Kasuya Devil pours 60, 60, then 160', pours(devil), [60, 60, 160]);
+  eq('Kasuya Devil closes the valve before the third pour', actions(devil), ['pourCircle', 'pourCircle', 'closeValve', 'pourCircle', 'openValve']);
+
+  const ibarra = byName('W.A.C Carolina Ibarra (2018)');
+  eq('Ibarra 35 g, 100 ml brew, then 60 + 40 ml bypass', [ibarra.coffeeGrams, pours(ibarra)], [35, [100, 60, 40]]);
+  eq('Ibarra presses before the bypass', actions(ibarra).indexOf('press') < 3, true);
+
+  const miczka = byName('W.A.C Paulina Miczka (2017)');
+  eq('Miczka is inverted', actions(miczka).includes('flip'), true);
+  eq('Miczka dilutes with 200 ml after pressing', pours(miczka), [150, 200]);
+
+  const wac2023 = byName('WAC 2023 Champion Recipe');
+  eq('WAC 2023 is 18 g, 174 ml in two stages', [wac2023.coffeeGrams, pours(wac2023)], [18, [55, 50, 25, 44]]);
+  eq('WAC 2023 presses twice', actions(wac2023).filter((a) => a === 'press').length, 2);
+
+  eq('Merikanto is inverted', actions(byName('W.A.C Tuomas Merikanto (2021)')).includes('flip'), true);
+  eq('Scott Rao is 330 ml', byName('Scott Rao V60').totalWaterMl, 330);
+  eq('April pours 60 circle + 40 centre, twice', pours(byName('April Pour-Over')), [60, 40, 60, 40]);
+  eq('Lance Hedrick steeps 10 minutes', byName('Lance Hedrick French Press').totalDurationSeconds, 600);
+  eq('Wendelboe is 33 g', byName('Tim Wendelboe French Press').coffeeGrams, 33);
+  eq('Gagne is 18 g / 260 ml', [byName('Jonathan Gagne Long Steep').coffeeGrams, byName('Jonathan Gagne Long Steep').totalWaterMl], [18, 260]);
+
+  [devil, ibarra, miczka, wac2023, byName('Scott Rao V60'), byName('April Pour-Over')].forEach((r) => {
+    eq(`${r.name}: pours add up to the total water`, pourSumMatches(r), true);
+  });
+
+  ['SCA Cupping Protocol', 'James Hoffmann Home Cupping', 'Cold Evaluation Cupping'].forEach((name) => {
+    eq(`${name} grind is at most 800 microns`, byName(name).targetGrindSizeMicrons <= 800, true);
+  });
+
+  const renamed = {
+    'Hario Switch (Tetsu Kasuya)': 'Inspired by Tetsu Kasuya (Hario Switch)',
+    'Ryan Wibawa WBrC 2024': 'Inspired by Ryan Wibawa (WBrC 2024)',
+    'Phin Coconut (Bac Xiu)': 'Coconut Phin (inspired by Bac Xiu)',
+    'Slayer French Press (Skim Early)': 'Skim-Early French Press',
+    'Tuomas Merikanto W.A.C': 'W.A.C Tuomas Merikanto (2021)',
+  };
+  Object.entries(renamed).forEach(([oldName, newName]) => {
+    eq(`renamed: ${oldName}`, [byName(oldName) === undefined, byName(newName) !== undefined], [true, true]);
+  });
+  [
+    ['Inspired by Tetsu Kasuya (Hario Switch)', 'Terinspirasi dari Tetsu Kasuya (Hario Switch)'],
+    ['Inspired by Ryan Wibawa (WBrC 2024)', 'Terinspirasi dari Ryan Wibawa (WBrC 2024)'],
+    ['Coconut Phin (inspired by Bac Xiu)', 'Phin Kelapa (terinspirasi dari Bac Xiu)'],
+    ['Skim-Early French Press', 'French Press Skim Awal'],
+  ].forEach(([en, id]) => {
+    eq(`${en} in both languages`, [str('en', en), str('id', en)], [en, id]);
+  });
+  ['extra_key_16', 'extra_key_17'].forEach((key) => {
+    eq(`${key} in both languages`, [str('id', key) !== key, str('en', key) !== key], [true, true]);
+  });
+
+  const df64 = grinderDatabase.find((g) => g.id === 'df64');
+  eq('DF64 never goes past its 90 mark', df64.getSetting(1400), '85 - 90 angka (maks)');
+  eq('Skerton V60 range stays inside the dial', grinderDatabase.find((g) => g.id === 'hario_skerton').getSetting(800), '3 - 5');
+  eq('coarse label no longer suggests the Switch', /Switch/.test(str('en', 'custom_grind_1200')), false);
+
+  console.log('\n=== migration of stored built-ins ===');
+  const migrations = require(path.join(outDir, 'recipeMigrations.js'));
+  const { AUDIT_2026_09_FINGERPRINTS: oldPrints, RENAMED_RECIPES, recipeFingerprint, applyAudit202609 } = migrations;
+
+  eq('the check and the migration agree on the renames', RENAMED_RECIPES, renamed);
+  eq('every audited recipe still exists under its current name',
+    Object.keys(oldPrints).filter((n) => !byName(RENAMED_RECIPES[n] ?? n)), []);
+  eq('no bundled recipe still matches its pre-audit fingerprint',
+    recipeDatabase.filter((r) => oldPrints[r.name] === recipeFingerprint(r)).map((r) => r.name), []);
+
+  // Pre-audit copies rebuilt from the corrected ones where only one field changed.
+  const sca = byName('SCA Cupping Protocol');
+  const oldSca = { ...sca, id: 'sca_1', targetGrindSizeMicrons: 850, isFavorite: true };
+  const skim = byName('Skim-Early French Press');
+  const oldSlayer = { ...skim, id: 'slayer_1', name: 'Slayer French Press (Skim Early)' };
+  eq('rebuilt SCA copy matches the pre-audit fingerprint', recipeFingerprint(oldSca), oldPrints['SCA Cupping Protocol']);
+  eq('rebuilt Slayer copy matches the pre-audit fingerprint', recipeFingerprint(oldSlayer), oldPrints['Slayer French Press (Skim Early)']);
+
+  const editedSca = { ...oldSca, id: 'sca_2', coffeeGrams: 12 };
+  const custom = { ...hoffmann, id: 'mine', name: 'My V60', isBuiltIn: false };
+  const result = applyAudit202609(
+    [oldSca, editedSca, oldSlayer, custom],
+    ['Phin Coconut (Bac Xiu)', 'Some Other Recipe'],
+    recipeDatabase
+  );
+  const [newSca, keptSca, newSlayer, keptCustom] = result.recipes;
+  eq('untouched copy gets the corrected grind', newSca.targetGrindSizeMicrons, 800);
+  eq('untouched copy keeps its id and favourite', [newSca.id, newSca.isFavorite], ['sca_1', true]);
+  eq('edited copy is left alone', keptSca, editedSca);
+  eq('renamed copy takes the new name and keeps its id', [newSlayer.name, newSlayer.id], ['Skim-Early French Press', 'slayer_1']);
+  eq('user recipe is left alone', keptCustom, custom);
+  eq('deleted built-in stays deleted under its new name', result.deletedDefaults, ['Coconut Phin (inspired by Bac Xiu)', 'Some Other Recipe']);
+  eq('reports that something changed', result.changed, true);
+
+  const again = applyAudit202609(result.recipes, result.deletedDefaults, recipeDatabase);
+  eq('running it again changes nothing', [again.changed, again.recipes], [false, result.recipes]);
+  const fresh = applyAudit202609(recipeDatabase, [], recipeDatabase);
+  eq('a fresh install is already current', fresh.changed, false);
 
   console.log('');
   console.log('=== bilingual payloads from the assistant ===');
