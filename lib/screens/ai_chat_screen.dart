@@ -6,6 +6,7 @@ import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import '../core/recipe.dart';
 import '../core/settings_state.dart';
+import '../core/calibration_state.dart';
 import '../core/ai_service.dart';
 import '../core/app_strings.dart';
 import '../widgets/native_text_field.dart';
@@ -111,6 +112,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   Future<void> _processAiRequest({String? prompt, String? audioBase64}) async {
     final settings = Provider.of<SettingsState>(context, listen: false);
+    final calibration = Provider.of<CalibrationState>(context, listen: false);
     final lang = settings.appLanguage;
     
     try {
@@ -122,6 +124,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
         currentRecipe: _currentDraft,
         lang: settings.appLanguage,
         targetMethod: widget.targetMethod,
+        mlPerSecond: calibration.isCalibrated ? calibration.mlPerSecond : null,
+        secondsPerRotation: calibration.isCalibrated ? calibration.secondsPerRotation : null,
       );
 
       if (aiResponse != null) {

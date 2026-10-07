@@ -43,9 +43,11 @@ class AiService {
     String? audioBase64,
     Recipe? currentRecipe,
     BrewMethod? targetMethod,
+    double? mlPerSecond,
+    double? secondsPerRotation,
   }) async {
-    if (apiKey.trim().isEmpty) {
-      throw Exception('API Key kosong. Silakan isi di Pengaturan (Settings).');
+    if (provider == 'gemini' && apiKey.trim().isEmpty) {
+      throw Exception('API Key Gemini kosong. Silakan isi di Pengaturan (Settings).');
     }
 
     final cleanKey = apiKey.trim();
@@ -100,9 +102,53 @@ class AiService {
 """;
     }
 
+    // Build calibration info for the AI
+    String calibrationInfo = "";
+    if (mlPerSecond != null && mlPerSecond > 0 && secondsPerRotation != null) {
+      final mlPerRotation = mlPerSecond * secondsPerRotation;
+      calibrationInfo = """
+
+USER'S CALIBRATION DATA (use this for calculations):
+- Flow rate: ${mlPerSecond.toStringAsFixed(1)} ml/second
+- Seconds per rotation (circular pour): ${secondsPerRotation.toStringAsFixed(1)} seconds
+- ml per rotation: ${mlPerRotation.toStringAsFixed(1)} ml
+
+HOW TO USE THIS DATA:
+- For pourCircle: pourDuration = pourAmountMl / $mlPerSecond. Rotations = pourDuration / $secondsPerRotation. ALWAYS round rotations to the nearest 0.5 (e.g. 1, 1.5, 2, 2.5, 3). Never output values like 1.3 or 2.7 — round them to 1.5 and 3.0 respectively. Include rotation count in instructionText.
+- For pourCenter: pourDuration = pourAmountMl / $mlPerSecond. Round duration to whole seconds. Include duration in instructionText.
+- If the user says "I want X rotations": pourAmountMl = X * ${mlPerRotation.toStringAsFixed(1)}.
+- If the user says "I want X seconds pour": pourAmountMl = X * $mlPerSecond.
+- ALWAYS include the calculated rotation count or pour duration in EVERY pour phase's instructionText. Example: {"id": "Tuang 45 ml air memutar (3 putaran, 6 detik)", "en": "Pour 45 ml in circles (3 rotations, 6 seconds)"}.
+""";
+    } else {
+      calibrationInfo = "\nNote: The user has NOT calibrated their equipment yet. Do not include rotation or time estimates in instructionText.\n";
+    }
+
     String contextInfo = "";
     if (currentRecipe != null) {
-      contextInfo = "\nThe user is currently editing a recipe: '${AppStrings.str(lang, currentRecipe.name)}'.\nCurrent Method: ${methodName}\nCurrent Bean Type: ${currentRecipe.beanType}\nCurrent Grind Size: ${currentRecipe.targetGrindSizeMicrons} microns.\nCurrent Extra Ingredients: ${AppStrings.str(lang, currentRecipe.extraIngredients)}\nCurrent Description: ${AppStrings.str(lang, currentRecipe.description)}\nCurrent state: ${currentRecipe.coffeeGrams}g coffee, ${currentRecipe.totalWaterMl}ml water.\nPhases: ${currentRecipe.phases.map((e) => 'At ${e.startTimeSeconds}s: ${e.action.name} ${e.pourAmountMl}ml').join(', ')}\nPlease modify this recipe based on the user's request. Keep everything else intact unless requested to change.";
+      final currentPhasesSummary = currentRecipe.phases.map((e) => 'At ${e.startTimeSeconds}s: ${e.action.name} ${e.pourAmountMl}ml').join(', ');
+      contextInfo = """
+
+The user is currently editing an EXISTING recipe: '${AppStrings.str(lang, currentRecipe.name)}'.
+Current Method: $methodName
+Current Bean Type: ${currentRecipe.beanType}
+Current Grind Size: ${currentRecipe.targetGrindSizeMicrons} microns
+Current Extra Ingredients: ${AppStrings.str(lang, currentRecipe.extraIngredients)}
+Current Description: ${AppStrings.str(lang, currentRecipe.description)}
+Current Coffee: ${currentRecipe.coffeeGrams}g (DO NOT CHANGE unless explicitly requested)
+Current Water: ${currentRecipe.totalWaterMl}ml (DO NOT CHANGE unless explicitly requested)
+Current Phases: $currentPhasesSummary
+
+EDITING MODE PRESERVATION RULE (HIGHEST PRIORITY - OVERRIDE ALL OTHER RULES):
+You are EDITING an existing recipe. Follow these rules STRICTLY:
+1. ONLY change what the user EXPLICITLY asks you to change. Nothing more, nothing less.
+2. If the user asks to change a specific phase (e.g. "make the second pour longer" or "extend pour 2"), change ONLY that phase. Do NOT touch coffeeGrams, totalWaterMl, grind size, bean type, ratio, or unrelated phases.
+3. If the user complains about taste (e.g. "too bitter", "too sour", "pahit"), you may adjust grind size or pour timing. But do NOT change coffeeGrams or the coffee-to-water ratio. Explain your grind/timing adjustment in chatMessage.
+4. ONLY if the user says something like "change the entire recipe", "make a completely new recipe", or "start over", THEN you may change everything.
+5. LOCKED VALUES (copy these EXACTLY into your output unless the user explicitly asks to change them): coffeeGrams=${currentRecipe.coffeeGrams}, totalWaterMl=${currentRecipe.totalWaterMl}, beanType="${currentRecipe.beanType}".
+6. When splitting or merging pour phases, the TOTAL water (sum of all pourAmountMl) MUST remain exactly ${currentRecipe.totalWaterMl}ml.
+7. When adjusting taste: change grind size or pour technique FIRST. Changing ratio is a LAST RESORT and requires explicit user permission.
+""";
     } else {
       contextInfo = "\nPlease create a new $methodName coffee recipe based on the user's request. The brew method MUST be $methodName — do NOT switch to a different brewing method.";
     }
@@ -112,7 +158,7 @@ class AiService {
     final systemInstruction = '''
 You are a friendly, expert barista AI. $contextInfo
 The app is currently set to $appLangLabel.
-  1. "chatMessage": A friendly, conversational response explaining what you just did. You MUST respond in the SAME LANGUAGE the user used in their message. If the user writes in Indonesian, reply in Indonesian. If the user writes in English, reply in English. IMPORTANT: Use a very casual, warm, and enthusiastic tone, like a friendly barista talking to a friend (e.g., use words like "Siap!", "Oke deh", "Wah boleh banget!"). Keep it brief.
+  1. "chatMessage": A friendly, conversational response explaining what you just did. You MUST respond in the SAME LANGUAGE the user used in their message. If the user writes in Indonesian, reply in Indonesian. If the user writes in English, reply in English. IMPORTANT: Use a very casual, warm, and enthusiastic tone, like a friendly barista talking to a friend (e.g., use words like "Siap!", "Oke deh", "Wah boleh banget!"). Keep it brief. When editing a recipe, briefly mention WHAT you changed and WHAT you kept the same (e.g. "Aku udah perpanjang tuangan kedua. Kopi dan air tetap sama ya!").
   2. "detectedLang": Either "id" or "en", representing the language you used in "chatMessage".
   3. "recipe": The actual modified or new recipe data.
   
@@ -122,13 +168,15 @@ The app is currently set to $appLangLabel.
   - For "targetGrindSizeMicrons", output an integer. Use 400 (Espresso), 600 (Aeropress), 700 (Bright/Filter/Fruity), 800 (V60 Standard), 1000 (Chemex), 1200 (French Press), or 1400 (Cold Brew).
   - For "extraIngredients", write cleanly with metric units. DO NOT use acronyms like "sdm" or "SKM". If none, use {"id": "", "en": ""}.
   - At the very end of "description", ALWAYS add a new paragraph predicting the flavor profile in BOTH languages (inside the "id" and "en" keys respectively).
-  - If you use physical actions like stir, swirl, cap, or flip, you MUST append a "wait" action exactly 5 seconds AFTER the physical action to give the user time to physically perform it.
-  - "coffeeGrams" must be at least 15g for a standard single serving. Never go below 12g unless explicitly requested.
-  - CRITICAL TIMING RULE: NEVER place two different actions at the exact same `startTimeSeconds`. Each phase MUST have a unique start time. For example, if you pour water at 60s, and you want to stir afterwards, the stir action MUST be placed at a later time (e.g. 70s or 75s), NOT at 60s. Overlapping times will crash the app's timer.
-  - CRITICAL BLOOM RULE: NEVER insert a "wait" phase between a bloom pour and the next pour. The time gap between phases IS the waiting period — the app's timer counts it automatically and announces a countdown before the next phase. Correct example: bloom pourCircle at 0s (45ml), then next pourCircle at 35s (no wait phase in between). WRONG example: bloom at 0s, wait at 5s, pour at 35s — this blocks the app countdown system.
-  - "wait" action is ONLY allowed: (a) after physical actions like stir/swirl/cap/flip, OR (b) during French Press / long steep methods where a multi-minute rest is needed.
+      - "coffeeGrams" must be at least 15g for a standard single serving. Never go below 12g unless explicitly requested.
+    - TOTAL DURATION RULE: You MUST always update the root `totalDurationSeconds` field. It must be equal to the `startTimeSeconds` of the LAST phase plus 30 to 45 seconds for drawdown. NEVER leave `totalDurationSeconds` unadjusted if you pushed the last phase to a later time.
+    - CRITICAL TIMING RULE: NEVER place two different actions at the exact same `startTimeSeconds`. Each phase MUST have a unique start time.
+    - WAIT PHASE RULE (READ CAREFULLY): The app automatically tells the user to "Wait" right after they finish a `pourCircle` or `pourCenter`. Therefore, NEVER insert a `wait` phase between a pour and the next pour. The time gap is handled automatically. HOWEVER, if you instruct the user to do a PHYSICAL ACTION (stir, swirl, flip, cap) in the middle of a gap, you MUST insert a `wait` phase exactly 5 seconds AFTER that physical action. This is required so the app knows when to tell the user to stop stirring/swirling.
+  - PRESERVATION RULE: When editing a recipe, the total water poured (sum of all pourAmountMl) MUST equal the original totalWaterMl unless the user explicitly asks to change the water amount or ratio. If you split or merge pours, the total MUST remain the same.
+    - SCALING RULE: When the user asks to change the coffee dose or total water, you MUST scale EVERY pourAmountMl proportionally to maintain the EXACT ratio of the original recipe''s pours. For example, if original has 50ml and 70ml out of 300ml, and user scales down to 180ml total, new pours MUST be exactly 30ml and 42ml. DO NOT replace the pour structure with generic knowledge!
 
 $methodSpecificGuide
+$calibrationInfo
 
 The JSON must strictly follow this structure:
 {
@@ -190,33 +238,58 @@ Valid actions: pourCircle, pourCenter, wait, stir, swirl, cap, flip, press, open
       
       body = jsonEncode({
         "model": "openai/gpt-oss-120b",
+        "temperature": 0.1,
         "messages": [
           {
+            "role": "system",
+            "content": systemInstruction
+          },
+          {
             "role": "user",
-            "content": systemInstruction + "\n\nUser request: " + finalPrompt
+            "content": "User request: " + finalPrompt
           }
         ],
         "response_format": {"type": "json_object"}
       });
     } else {
-      final parts = <Map<String, dynamic>>[{"text": systemInstruction}];
-      if (prompt != null && prompt.isNotEmpty) parts.add({"text": "User request: $prompt"});
-      if (audioBase64 != null && audioBase64.isNotEmpty) {
-        parts.add({"inlineData": {"mimeType": "audio/m4a", "data": audioBase64}});
+        final parts = <Map<String, dynamic>>[];
+        if (prompt != null && prompt.isNotEmpty) {
+          parts.add({"text": "User request: " + prompt});
+        }
+        
+        if (audioBase64 != null && audioBase64.isNotEmpty) {
+          parts.add({"inlineData": {"mimeType": "audio/m4a", "data": audioBase64}});
+        }
+        
+        body = jsonEncode({
+          "systemInstruction": {
+            "parts": [{"text": systemInstruction}]
+          },
+          "contents": [{"role": "user", "parts": parts}],
+          "generationConfig": {
+            "responseMimeType": "application/json",
+            "temperature": 0.1
+          }
+        });
       }
-      body = jsonEncode({
-        "contents": [{"parts": parts}],
-        "generationConfig": {"responseMimeType": "application/json"}
-      });
-    }
 
     http.Response? request;
     int retryCount = 0;
+    
+    final Map<String, String> headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    Uri targetUrl;
+    if (provider == 'gemini') {
+      targetUrl = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=$cleanKey');
+    } else {
+      targetUrl = Uri.parse('https://divine-art-85f1.aswar-drummer.workers.dev/');
+      headers['X-AI-Provider'] = provider;
+    }
+
     while (retryCount < 3) {
-      request = await http.post(url, body: body, headers: {
-        'Content-Type': 'application/json',
-        'X-AI-Provider': provider
-      });
+      request = await http.post(targetUrl, body: body, headers: headers);
       if (request.statusCode == 503 || request.statusCode == 500) {
         retryCount++;
         if (retryCount >= 3) break;
@@ -233,7 +306,8 @@ Valid actions: pourCircle, pourCenter, wait, stir, swirl, cap, flip, press, open
       if (request.statusCode == 429) {
         throw Exception(lang == 'en' ? 'API Quota Exhausted.' : 'Kuota API harian habis.');
       }
-      throw Exception('Failed to communicate with Proxy: ${request.statusCode}');
+      // Print the actual response body to know why it failed
+      throw Exception('Error ${request.statusCode}: ${request.body}');
     }
 
     final responseData = jsonDecode(request.body);

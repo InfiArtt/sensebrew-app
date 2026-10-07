@@ -1,4 +1,4 @@
-﻿package com.example.v60_blind_guide
+package com.example.v60_blind_guide
 
 import android.content.Context
 import android.text.Editable
@@ -7,6 +7,7 @@ import android.text.TextWatcher
 import android.text.method.PasswordTransformationMethod
 import android.view.KeyEvent
 import android.view.View
+import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
@@ -34,18 +35,16 @@ class NativeTextFieldView(
         editText.apply {
             isSingleLine = true
             imeOptions = EditorInfo.IME_ACTION_DONE
-            
-            // Only use hint for EditText to avoid confusing TalkBack with double descriptions
             hint = label
-
             setText(initialValue)
             setSelection(initialValue.length)
-
             textSize = 18f
             setPadding(24, 24, 24, 24)
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            
+            // We NO LONGER manipulate importantForAccessibility here.
+            // Flutter's AccessibilityBridge will manage this automatically
+            // based on the ExcludeSemantics widget in Dart.
 
-            // Set inputType and transformationMethod LAST so they don't get reset by isSingleLine
             inputType = when {
                 type == "number" -> InputType.TYPE_CLASS_NUMBER
                 isPassword -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
@@ -67,12 +66,9 @@ class NativeTextFieldView(
             setOnEditorActionListener { v, actionId, event ->
                 if (actionId == EditorInfo.IME_ACTION_DONE || (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
                     channel.invokeMethod("onDone", text?.toString() ?: "")
-                    
-                    // Hide the keyboard
                     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                     imm.hideSoftInputFromWindow(v.windowToken, 0)
                     clearFocus()
-                    
                     true
                 } else false
             }
@@ -80,15 +76,8 @@ class NativeTextFieldView(
             setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
                     channel.invokeMethod("onFocused", null)
-                }
-            }
-
-            accessibilityDelegate = object : View.AccessibilityDelegate() {
-                override fun performAccessibilityAction(host: View, action: Int, args: android.os.Bundle?): Boolean {
-                    if (action == AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS) {
-                        channel.invokeMethod("onAccessibilityFocused", null)
-                    }
-                    return super.performAccessibilityAction(host, action, args)
+                } else {
+                    channel.invokeMethod("onFocusLost", null)
                 }
             }
         }
@@ -111,6 +100,16 @@ class NativeTextFieldView(
                         editText.transformationMethod = null
                     }
                     editText.setSelection(editText.text.length)
+                    result.success(null)
+                }
+                "requestFocus" -> {
+                    // Just request focus and show keyboard. Flutter already made the node visible.
+                    editText.requestFocus()
+                    editText.post {
+                        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                        imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+                        editText.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
+                    }
                     result.success(null)
                 }
                 else -> result.notImplemented()
