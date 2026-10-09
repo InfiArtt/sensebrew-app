@@ -10,6 +10,7 @@ import 'calibration_screen.dart';
 import 'brewing_screen.dart';
 import 'custom_recipe_screen.dart';
 import '../core/recipe_repository.dart';
+import '../widgets/flavor_dial_sheet.dart';
 
 class MethodRecipeScreen extends StatefulWidget {
   final BrewMethod method;
@@ -204,10 +205,21 @@ class _MethodRecipeScreenState extends State<MethodRecipeScreen> {
                                 );
                                 return;
                               }
+                              // If this is a 4:6 recipe, show Flavor Dial first
+                              Recipe recipeToBrew = recipe;
+                              final bool is46 = recipe.name.contains('4-6') ||
+                                  recipe.name.contains('4:6') ||
+                                  recipe.name.toLowerCase().contains('kasuya');
+                              if (is46 && context.mounted) {
+                                final adjusted = await showFlavorDialSheet(context, recipe, lang);
+                                if (!context.mounted) return;
+                                if (adjusted == null) return;
+                                recipeToBrew = adjusted;
+                              }
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => BrewingScreen(recipe: recipe),
+                                  builder: (_) => BrewingScreen(recipe: recipeToBrew),
                                 ),
                               );
                             } else if (action == 'edit') {
