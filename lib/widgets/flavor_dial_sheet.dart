@@ -148,109 +148,53 @@ class _FlavorDialSheetState extends State<_FlavorDialSheet> {
           ),
           const SizedBox(height: 24),
 
-          // --- RASA SLIDER ---
-          Semantics(
-            label: lang == 'en'
-                ? 'Taste slider. Current: ${_rasaLabel(lang)}'
-                : 'Slider rasa. Saat ini: ${_rasaLabel(lang)}',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(lang == 'en' ? 'TASTE' : 'RASA',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.2)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.brown[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.brown[200]!),
-                      ),
-                      child: Text(_rasaLabel(lang),
-                          style: TextStyle(color: Colors.brown[700], fontWeight: FontWeight.bold, fontSize: 13)),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text(lang == 'en' ? '😊\nSweet' : '😊\nManis',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-                    Expanded(
-                      child: Slider(
-                        value: _rasa.toDouble(),
-                        min: -2, max: 2, divisions: 4,
-                        activeColor: Colors.brown,
-                        onChanged: (v) {
-                          setState(() => _rasa = v.round());
-                          SemanticsService.announce(_rasaLabel(lang), TextDirection.ltr);
-                        },
-                      ),
-                    ),
-                    Text(lang == 'en' ? '✨\nBright' : '✨\nCerah',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-                  ],
-                ),
-              ],
+                    // --- RASA DROPDOWN ---
+          DropdownButtonFormField<int>(
+            value: _rasa,
+            decoration: InputDecoration(
+              labelText: lang == 'en' ? 'Taste Profile' : 'Profil Rasa',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
+            items: [
+              DropdownMenuItem(value: -2, child: Text(lang == 'en' ? 'Very Sweet' : 'Sangat Manis')),
+              DropdownMenuItem(value: -1, child: Text(lang == 'en' ? 'Sweet' : 'Manis')),
+              DropdownMenuItem(value: 0, child: Text(lang == 'en' ? 'Balanced' : 'Seimbang')),
+              DropdownMenuItem(value: 1, child: Text(lang == 'en' ? 'Bright / Sour' : 'Cerah / Asam')),
+              DropdownMenuItem(value: 2, child: Text(lang == 'en' ? 'Very Bright' : 'Sangat Cerah')),
+            ],
+            onChanged: (v) {
+              if (v != null) {
+                setState(() => _rasa = v);
+                SemanticsService.announce(_rasaLabel(lang), TextDirection.ltr);
+              }
+            },
           ),
 
-          const Divider(height: 28),
+          const SizedBox(height: 20),
 
-          // --- KEKUATAN SLIDER ---
-          Semantics(
-            label: lang == 'en'
-                ? 'Strength slider. Current: ${_kekuatanLabel(lang)}'
-                : 'Slider kekuatan. Saat ini: ${_kekuatanLabel(lang)}',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(lang == 'en' ? 'STRENGTH' : 'KEKUATAN',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.2)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.brown[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.brown[200]!),
-                      ),
-                      child: Text(_kekuatanLabel(lang),
-                          style: TextStyle(color: Colors.brown[700], fontWeight: FontWeight.bold, fontSize: 13)),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text(lang == 'en' ? '🌿\nLight' : '🌿\nRingan',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-                    Expanded(
-                      child: Slider(
-                        value: _kekuatan.toDouble(),
-                        min: -1, max: 1, divisions: 2,
-                        activeColor: Colors.brown[800],
-                        onChanged: (v) {
-                          setState(() => _kekuatan = v.round());
-                          SemanticsService.announce(_kekuatanLabel(lang), TextDirection.ltr);
-                        },
-                      ),
-                    ),
-                    Text(lang == 'en' ? '💪\nBold' : '💪\nKuat',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-                  ],
-                ),
-              ],
+          // --- KEKUATAN DROPDOWN ---
+          DropdownButtonFormField<int>(
+            value: _kekuatan,
+            decoration: InputDecoration(
+              labelText: lang == 'en' ? 'Strength Profile' : 'Kekuatan Seduhan',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
+            items: [
+              DropdownMenuItem(value: -1, child: Text(lang == 'en' ? 'Light (2 pours)' : 'Ringan (2 tuangan)')),
+              DropdownMenuItem(value: 0, child: Text(lang == 'en' ? 'Standard (3 pours)' : 'Standar (3 tuangan)')),
+              DropdownMenuItem(value: 1, child: Text(lang == 'en' ? 'Bold (4 pours)' : 'Kuat (4 tuangan)')),
+            ],
+            onChanged: (v) {
+              if (v != null) {
+                setState(() => _kekuatan = v);
+                SemanticsService.announce(_kekuatanLabel(lang), TextDirection.ltr);
+              }
+            },
           ),
 
-          const Divider(height: 28),
+          const SizedBox(height: 8),
 
           // --- PHASE PREVIEW ---
           Semantics(
