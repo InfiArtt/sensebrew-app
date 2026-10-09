@@ -207,10 +207,7 @@ class _MethodRecipeScreenState extends State<MethodRecipeScreen> {
                               }
                               // If this is a 4:6 recipe, show Flavor Dial first
                               Recipe recipeToBrew = recipe;
-                              final bool is46 = recipe.name.contains('4-6') ||
-                                  recipe.name.contains('4:6') ||
-                                  recipe.name.toLowerCase().contains('kasuya');
-                              if (is46 && context.mounted) {
+                              if (recipe.isKasuya46 && context.mounted) {
                                 final adjusted = await showFlavorDialSheet(context, recipe, lang);
                                 if (!context.mounted) return;
                                 if (adjusted == null) return;

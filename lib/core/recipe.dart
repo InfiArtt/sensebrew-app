@@ -76,6 +76,7 @@ class Recipe {
   final String beanType;
   bool isFavorite;
   final bool isBuiltIn;
+  final bool isKasuya46;
 
   Recipe({
     String? id,
@@ -91,6 +92,7 @@ class Recipe {
     this.beanType = 'Arabica',
     this.isFavorite = false,
     this.isBuiltIn = false,
+    this.isKasuya46 = false,
   }) : id = id ?? "${name.replaceAll(' ', '_')}_${DateTime.now().microsecondsSinceEpoch}";
 
   Map<String, dynamic> toJson() => {
@@ -107,6 +109,7 @@ class Recipe {
     'beanType': beanType,
     'isFavorite': isFavorite,
     'isBuiltIn': isBuiltIn,
+    'isKasuya46': isKasuya46,
   };
 
   factory Recipe.fromJson(Map<String, dynamic> json) => Recipe(
@@ -123,6 +126,7 @@ class Recipe {
     beanType: json['beanType'] ?? 'Arabica',
     isFavorite: json['isFavorite'] ?? false,
     isBuiltIn: json['isBuiltIn'] ?? recipeDatabase.any((r) => r.name == (json['name'] ?? '')),
+    isKasuya46: json['isKasuya46'] ?? ((json['name'] ?? '').contains('4-6') || (json['name'] ?? '').contains('4:6') || (json['name'] ?? '').toLowerCase().contains('kasuya')),
   );
 
   Recipe copyWith({
@@ -139,6 +143,7 @@ class Recipe {
     String? beanType,
     bool? isFavorite,
     bool? isBuiltIn,
+    bool? isKasuya46,
   }) {
     return Recipe(
       id: id ?? this.id,
@@ -154,6 +159,7 @@ class Recipe {
       beanType: beanType ?? this.beanType,
       isFavorite: isFavorite ?? this.isFavorite,
       isBuiltIn: isBuiltIn ?? this.isBuiltIn,
+      isKasuya46: isKasuya46 ?? this.isKasuya46,
     );
   }
 }
@@ -181,6 +187,7 @@ List<Recipe> recipeDatabase = [
   Recipe(
     isBuiltIn: true,
     name: "Tetsu Kasuya 4-6 Method",
+    isKasuya46: true,
     description: "desc_key_1",
     coffeeGrams: 20,
     totalWaterMl: 300,

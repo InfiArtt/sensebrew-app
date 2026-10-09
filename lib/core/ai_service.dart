@@ -357,6 +357,7 @@ Valid actions: pourCircle, pourCenter, wait, stir, swirl, cap, flip, press, open
 
       final Recipe generatedRecipe = Recipe(
         id: currentRecipe?.id, 
+        isKasuya46: currentRecipe?.isKasuya46 ?? false,
         name: parseI18n(recipeData['name']).isEmpty ? (currentRecipe?.name ?? 'AI Recipe') : parseI18n(recipeData['name']),
         description: parseI18n(recipeData['description']),
         coffeeGrams: (recipeData['coffeeGrams'] as num?)?.toDouble() ?? 15.0,
