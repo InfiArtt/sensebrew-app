@@ -173,7 +173,10 @@ The app is currently set to $appLangLabel.
     - CRITICAL TIMING RULE: NEVER place two different actions at the exact same `startTimeSeconds`. Each phase MUST have a unique start time.
     - WAIT PHASE RULE (READ CAREFULLY): The app automatically tells the user to "Wait" right after they finish a `pourCircle` or `pourCenter`. Therefore, NEVER insert a `wait` phase between a pour and the next pour. The time gap is handled automatically. HOWEVER, if you instruct the user to do a PHYSICAL ACTION (stir, swirl, flip, cap) in the middle of a gap, you MUST insert a `wait` phase exactly 5 seconds AFTER that physical action. This is required so the app knows when to tell the user to stop stirring/swirling.
   - PRESERVATION RULE: When editing a recipe, the total water poured (sum of all pourAmountMl) MUST equal the original totalWaterMl unless the user explicitly asks to change the water amount or ratio. If you split or merge pours, the total MUST remain the same.
-    - SCALING RULE: When the user asks to change the coffee dose or total water, you MUST scale EVERY pourAmountMl proportionally to maintain the EXACT ratio of the original recipe''s pours. For example, if original has 50ml and 70ml out of 300ml, and user scales down to 180ml total, new pours MUST be exactly 30ml and 42ml. DO NOT replace the pour structure with generic knowledge!
+    - SCALING RULE: When the user asks to change the coffee dose or total water, you MUST do TWO things:
+      1. WATER SCALING: Scale EVERY pourAmountMl proportionally to maintain the EXACT ratio of the original recipe''s pours (e.g. 50ml out of 300ml becomes 30ml out of 180ml).
+      2. TIME SCALING: Scale the TIME INTERVALS (startTimeSeconds) proportionally for pour-over methods (v60, vietnamDrip). A smaller coffee bed drains faster! If you reduce the water/coffee by 40%, you MUST also reduce the time gap between pours so the coffee bed doesn't sit dry (e.g. A 45s interval for 20g should become roughly a 25-30s interval for 12g).
+      DO NOT replace the pour structure with generic knowledge! Maintain the same number of pours, just scale their amounts and intervals.
 
 $methodSpecificGuide
 $calibrationInfo

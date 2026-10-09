@@ -24,36 +24,45 @@ Recipe generate46Recipe(Recipe base, int rasa, int kekuatan) {
   final double perBackPour =
       (backBlock / backPourCount * 2).round() / 2; // round to 0.5ml
 
-  // Build phases at 45-second intervals
-  final List<RecipePhase> phases = [];
-  int t = 0;
+  // Dynamically calculate interval based on AI's recipe spacing
+    int interval = 45;
+    if (base.phases.length >= 2) {
+      int firstGap = base.phases[1].startTimeSeconds - base.phases[0].startTimeSeconds;
+      if (firstGap > 15 && firstGap <= 90) {
+        interval = firstGap;
+      }
+    }
 
-  // Phase 1 & 2 (front block)
-  phases.add(RecipePhase(
-    startTimeSeconds: t,
-    pourAmountMl: pour1,
-    action: PhaseAction.pourCircle,
-  ));
-  t += 45;
-  phases.add(RecipePhase(
-    startTimeSeconds: t,
-    pourAmountMl: pour2,
-    action: PhaseAction.pourCircle,
-  ));
-  t += 45;
+    // Build phases using dynamic interval
+    final List<RecipePhase> phases = [];
+    int t = 0;
 
-  // Back block pours
-  for (int i = 0; i < backPourCount; i++) {
+    // Phase 1 & 2 (front block)
     phases.add(RecipePhase(
       startTimeSeconds: t,
-      pourAmountMl: perBackPour,
+      pourAmountMl: pour1,
       action: PhaseAction.pourCircle,
     ));
-    t += 45;
-  }
+    t += interval;
+    phases.add(RecipePhase(
+      startTimeSeconds: t,
+      pourAmountMl: pour2,
+      action: PhaseAction.pourCircle,
+    ));
+    t += interval;
 
-  // totalDuration = last pour start + 45s drawdown
-  final int totalDuration = t;
+    // Back block pours
+    for (int i = 0; i < backPourCount; i++) {
+      phases.add(RecipePhase(
+        startTimeSeconds: t,
+        pourAmountMl: perBackPour,
+        action: PhaseAction.pourCircle,
+      ));
+      t += interval;
+    }
+
+    // totalDuration = last pour start + interval drawdown
+    final int totalDuration = t;
 
   return base.copyWith(phases: phases, totalDurationSeconds: totalDuration);
 }
