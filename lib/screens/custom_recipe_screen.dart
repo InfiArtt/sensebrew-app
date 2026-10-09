@@ -59,6 +59,7 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
     if (widget.initialRecipe != null && _nameController.text.isEmpty) {
       final lang = Provider.of<SettingsState>(context, listen: false).appLanguage;
       final r = widget.initialRecipe!;
+      _isKasuya46 = r.isKasuya46;
       _hiddenAiName = r.name;
       _hiddenAiDesc = r.description;
       _hiddenAiExtra = r.extraIngredients;
