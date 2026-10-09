@@ -285,8 +285,9 @@ class _FlavorDialSheetState extends State<_FlavorDialSheet> {
               Expanded(
                 flex: 2,
                 child: Semantics(
-                  button: true,
-                  label: lang == 'en'
+                    button: true,
+                    excludeSemantics: true,
+                    label: lang == 'en'
                       ? 'Start brewing with these settings'
                       : 'Mulai seduh dengan pengaturan ini',
                   child: ElevatedButton.icon(
