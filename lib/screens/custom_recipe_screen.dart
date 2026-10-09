@@ -31,6 +31,7 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
   String? _hiddenAiName;
   String? _hiddenAiDesc;
   String? _hiddenAiExtra;
+  bool _isKasuya46 = false;
 
   @override
   void initState() {
@@ -124,6 +125,7 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
       currentDraft = Recipe(
         id: widget.initialRecipe?.id,
         method: widget.initialRecipe?.method ?? widget.targetMethod ?? BrewMethod.v60,
+        isKasuya46: _isKasuya46,
         name: _hiddenAiName ?? _nameController.text,
         description: _hiddenAiDesc ?? _noteController.text,
         coffeeGrams: coffee,
@@ -212,6 +214,7 @@ class _CustomRecipeScreenState extends State<CustomRecipeScreen> {
     final recipe = Recipe(
       id: saveAsNew ? null : widget.initialRecipe?.id,
       method: widget.initialRecipe?.method ?? widget.targetMethod ?? BrewMethod.v60,
+      isKasuya46: _isKasuya46,
       name: name,
       description: note,
       coffeeGrams: coffee,
